@@ -30,7 +30,7 @@ app.use((express.json({
 })))
 
 app.get('/',(req,res)=>{
-    res.send("Welcome to the server made by express")
+    res.send("Welcome to the Blog Site Made By Nikhil Bansal")
 });
 
 (async()=>{
