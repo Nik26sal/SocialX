@@ -1,38 +1,38 @@
-import mongoose, { Schema, Types } from "mongoose";
-import bcrypt from 'bcrypt'
+import mongoose, { Schema } from "mongoose";
+import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
+
 const userSchema = new mongoose.Schema({
-    Name:{
-        type:String,
-        required:true,
-        trim:true
+    Name: {
+        type: String,
+        required: true,
+        trim: true
     },
-    Password:{
-        type:String,
-        required:true,
-        minlength:6
+    Password: {
+        type: String,
+        required: true,
+        minlength: 6
     },
-    Email:{
-        type:String,
-        lowercase:true,
-        unique:true,
-        required:true
+    Email: {
+        type: String,
+        lowercase: true,
+        unique: true,
+        required: true
     },
-    refreshToken:{
-        type:String
+    refreshToken: {
+        type: String
     },
-    Posts:[
+    Posts: [
         {
-            type:Schema.Types.ObjectId,
-            ref:'Post'
+            type: Schema.Types.ObjectId,
+            ref: 'Post'
         }
     ]
-},
-{
-    timestamps:true
+}, {
+    timestamps: true
 });
-// Hashing Password Before Save the User
-// Here the arrow function are not work because the this keyword in the arrow function not pointed towards the saved document but in the function expression this pointed to saved document.
+
+// Hashing Password Before Saving the User
 userSchema.pre('save', async function (next) {
     if (this.isModified('Password')) {
         const saltRounds = 10;
@@ -41,10 +41,11 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
-// method that check the Password is correct or not 
-userSchema.method.isPasswordCorrect = async (Password)=>{
-    return await bcrypt.compare(Password,this.Password);
-}
+// Method to check if the Password is correct
+userSchema.methods.isPasswordCorrect = async function (Password) {
+    return await bcrypt.compare(Password, this.Password);
+};
+
 // Generate Access Token
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
@@ -59,6 +60,7 @@ userSchema.methods.generateAccessToken = function () {
         }
     );
 };
+
 // Generate Refresh Token
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
@@ -72,4 +74,4 @@ userSchema.methods.generateRefreshToken = function () {
     );
 };
 
-export const User = mongoose.model('User',userSchema);
+export const User = mongoose.model('User', userSchema);
