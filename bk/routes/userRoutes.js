@@ -1,6 +1,7 @@
 import { Router } from "express";
 import jwt  from "jsonwebtoken";
 import { User } from '../models/userModel.js'
+import mongoose from 'mongoose';
 import { Post } from '../models/postModel.js'
 const router = Router();
 
@@ -96,15 +97,11 @@ router.post("/login", async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: "User not registered. Please register first." });
         }
-        console.log(user);
         const validatePassword = await user.isPasswordCorrect(Password);
-        console.log(validatePassword)
         if (!validatePassword) {
             return res.status(400).json({ message: "Password is incorrect" });
         }
-
         const { accessToken, refreshToken } = await generateToken(user._id);
-
         const loggedInUser = await User.findById(user._id).select('-password -refreshToken');
         return res.status(200)
             .cookie("accessToken", accessToken)
@@ -120,7 +117,7 @@ router.post("/login", async (req, res) => {
     }
 });
 
-//Logout User
+//3.Logout User
 router.post("/logout", verifyJWT, async (req, res) => {
     try {
         await User.findByIdAndUpdate(req.user._id, { isLoggedIn: false }); 
@@ -135,7 +132,20 @@ router.post("/logout", verifyJWT, async (req, res) => {
     }
 });
 
-//create Post
+//4.DeleteAccount
+router.post("/deleteAccount", verifyJWT, async (req, res) => {
+    try {
+        const deletedUser = await user.findByIdAndDelete(req.user._id);
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found or already deleted" });
+        }
+        return res.status(200).json({ message: "Account deletion successfully done" });
+    } catch (error) {
+        return res.status(500).json({ message: "Sorry, something went wrong during account deletion" });
+    }
+});
+
+//5.Create Post Route
 router.post("/uploadPost", verifyJWT, async (req, res) => {
     try {
         const { Content } = req.body;
@@ -145,17 +155,23 @@ router.post("/uploadPost", verifyJWT, async (req, res) => {
 
         const post = await Post.create({
             Content,
-            user: req.user._id
+            User: req.user._id
         });
+
+        await User.findByIdAndUpdate(
+            req.user._id,
+            { $push: { Posts: post._id } },
+            { new: true }
+        );
 
         return res.status(201).json({
             message: "Post created successfully.",
             post: post
         });
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error creating post:", error);
         return res.status(500).json({
-            message: "Something went wrong while creating the post"
+            message: "Something went wrong while creating the post."
         });
     }
 });
