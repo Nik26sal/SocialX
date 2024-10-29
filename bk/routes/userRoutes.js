@@ -1,7 +1,7 @@
 import { Router } from "express";
 import jwt  from "jsonwebtoken";
 import { User } from '../models/userModel.js'
-import mongoose from 'mongoose';
+import { Comment } from "../models/commentModel.js";
 import { Post } from '../models/postModel.js'
 const router = Router();
 
@@ -46,7 +46,6 @@ const verifyJWT = async (req, res, next) => {
         return res.status(403).json({ message: "Forbidden: Invalid or expired token" });
     }
 };
-
 
 //1.Registration of User 
 router.post("/register", async (req, res) => {
@@ -135,16 +134,21 @@ router.post("/logout", verifyJWT, async (req, res) => {
 //4.DeleteAccount
 router.post("/deleteAccount", verifyJWT, async (req, res) => {
     try {
-        const deletedUser = await user.findByIdAndDelete(req.user._id);
+        const deletedPosts = await Post.deleteMany({ User: req.user._id });
+        const deletedUser = await User.findByIdAndDelete(req.user._id);
         if (!deletedUser) {
             return res.status(404).json({ message: "User not found or already deleted" });
         }
-        return res.status(200).json({ message: "Account deletion successfully done" });
+        return res.status(200).json({ 
+            message: "Account and associated posts deleted successfully." 
+        });
     } catch (error) {
-        return res.status(500).json({ message: "Sorry, something went wrong during account deletion" });
+        console.error("Error deleting account and posts:", error);
+        return res.status(500).json({ 
+            message: "Sorry, something went wrong during account deletion." 
+        });
     }
 });
-
 //5.Create Post Route
 router.post("/uploadPost", verifyJWT, async (req, res) => {
     try {
@@ -175,5 +179,118 @@ router.post("/uploadPost", verifyJWT, async (req, res) => {
         });
     }
 });
+
+//6.Delete Post
+router.post('/deletePost/:postId', verifyJWT, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const post = await Post.findOne({ _id: req.params.postId, User: req.user._id });
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found or does not belong to user' });
+        }
+
+        await Post.deleteOne({ _id: req.params.postId });
+
+        user.Posts = user.Posts.filter(postId => postId.toString() !== req.params.postId);
+        await user.save();
+
+        res.status(200).json({ message: 'Post deleted successfully' });
+    } catch (error) {
+        console.error("Error deleting post:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+//Comment on Post
+router.post('/Comment/:postId', verifyJWT, async (req, res) => {
+    try {
+        const { Content } = req.body;
+
+        if (!Content || Content.trim() === "") {
+            return res.status(400).json({ message: "Content cannot be empty" });
+        }
+
+        const post = await Post.findOne({ _id: req.params.postId });
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        const comment = await Comment.create({
+            Content,
+            User: req.user._id,
+            Post: req.params.postId
+        });
+
+        await Post.findByIdAndUpdate(
+            req.params.postId,
+            { $push: { Comments: comment._id } },
+            { new: true }
+        );
+
+        res.status(201).json({ message: "Comment added successfully", comment });
+    } catch (error) {
+        console.error("Error creating comment:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
+// // 8. Like a Post
+// router.post("/likes/:postId", verifyJWT, async (req, res) => {
+//     const userId = req.user._id;
+//     const { postId } = req.params;
+
+//     try {
+//         // Use aggregation pipeline to check if the user has already liked the post
+//         const postExistsAndLiked = await Post.aggregate([
+//             { $match: { _id: mongoose.Types.ObjectId(postId) } },
+//             {
+//                 $lookup: {
+//                     from: "likes",
+//                     let: { postId: "$_id" },
+//                     pipeline: [
+//                         { 
+//                             $match: { 
+//                                 $expr: { 
+//                                     $and: [
+//                                         { $eq: ["$Post", "$$postId"] }, 
+//                                         { $eq: ["$User", mongoose.Types.ObjectId(userId)] }
+//                                     ]
+//                                 } 
+//                             } 
+//                         }
+//                     ],
+//                     as: "userLike"
+//                 }
+//             },
+//             { $addFields: { alreadyLiked: { $gt: [{ $size: "$userLike" }, 0] } } }
+//         ]);
+
+//         if (!postExistsAndLiked.length) {
+//             return res.status(404).json({ message: "Post not found" });
+//         } else if (postExistsAndLiked[0].alreadyLiked) {
+//             return res.status(400).json({ message: "You have already liked this post" });
+//         }
+
+//         // Create a new like
+//         const like = new Like({
+//             User: userId,
+//             Post: postId
+//         });
+//         await like.save();
+
+//         // Increment like count on the post
+//         await Post.updateOne({ _id: postId }, { $inc: { likeCount: 1 } });
+
+//         return res.status(201).json({ message: "Post liked successfully", like });
+//     } catch (error) {
+//         console.error("Error liking post:", error);
+//         return res.status(500).json({ message: "Something went wrong while liking the post." });
+//     }
+// });
 
 export default router;

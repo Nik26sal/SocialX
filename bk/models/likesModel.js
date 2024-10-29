@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const likesSchema = new mongoose.Schema({
     User: {
         type: Schema.Types.ObjectId,
@@ -12,3 +14,5 @@ const likesSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+export const Likes = mongoose.model('Like',likesSchema)

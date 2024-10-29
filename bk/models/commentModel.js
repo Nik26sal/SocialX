@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 const commentSchema = new mongoose.Schema({
     Content: {
         type: String,
@@ -17,3 +18,5 @@ const commentSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+export const Comment = mongoose.model('Comment',commentSchema);
