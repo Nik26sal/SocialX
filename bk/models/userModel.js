@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String
     },
+    TotalLikes:{
+        type:Number,
+        default:0
+    },
     Posts: [
         {
             type: Schema.Types.ObjectId,

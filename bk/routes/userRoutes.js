@@ -238,59 +238,12 @@ router.post('/Comment/:postId', verifyJWT, async (req, res) => {
     }
 });
 
+//Get All Post
+router.get('/getAllPost',verifyJWT,async(req,res)=>{
+    const posts = await Post.find();
+    res.status(202).json({post:posts});
+})
 
-// // 8. Like a Post
-// router.post("/likes/:postId", verifyJWT, async (req, res) => {
-//     const userId = req.user._id;
-//     const { postId } = req.params;
-
-//     try {
-//         // Use aggregation pipeline to check if the user has already liked the post
-//         const postExistsAndLiked = await Post.aggregate([
-//             { $match: { _id: mongoose.Types.ObjectId(postId) } },
-//             {
-//                 $lookup: {
-//                     from: "likes",
-//                     let: { postId: "$_id" },
-//                     pipeline: [
-//                         { 
-//                             $match: { 
-//                                 $expr: { 
-//                                     $and: [
-//                                         { $eq: ["$Post", "$$postId"] }, 
-//                                         { $eq: ["$User", mongoose.Types.ObjectId(userId)] }
-//                                     ]
-//                                 } 
-//                             } 
-//                         }
-//                     ],
-//                     as: "userLike"
-//                 }
-//             },
-//             { $addFields: { alreadyLiked: { $gt: [{ $size: "$userLike" }, 0] } } }
-//         ]);
-
-//         if (!postExistsAndLiked.length) {
-//             return res.status(404).json({ message: "Post not found" });
-//         } else if (postExistsAndLiked[0].alreadyLiked) {
-//             return res.status(400).json({ message: "You have already liked this post" });
-//         }
-
-//         // Create a new like
-//         const like = new Like({
-//             User: userId,
-//             Post: postId
-//         });
-//         await like.save();
-
-//         // Increment like count on the post
-//         await Post.updateOne({ _id: postId }, { $inc: { likeCount: 1 } });
-
-//         return res.status(201).json({ message: "Post liked successfully", like });
-//     } catch (error) {
-//         console.error("Error liking post:", error);
-//         return res.status(500).json({ message: "Something went wrong while liking the post." });
-//     }
-// });
+// 8. Like a Post
 
 export default router;
