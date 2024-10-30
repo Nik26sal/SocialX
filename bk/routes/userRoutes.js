@@ -1,11 +1,10 @@
 import { Router } from "express";
-import jwt  from "jsonwebtoken";
-import { User } from '../models/userModel.js'
+import jwt from "jsonwebtoken";
+import { User } from "../models/userModel.js";
 import { Comment } from "../models/commentModel.js";
-import { Post } from '../models/postModel.js'
+import { Post } from "../models/postModel.js";
+
 const router = Router();
-
-
 //Generate Tokens 
 const generateToken = async (userId) => {
     try {
@@ -26,101 +25,79 @@ const generateToken = async (userId) => {
     }
 };
 
-// middleWare/verifyUser.js
+// Middleware for Verifying JWT
 const verifyJWT = async (req, res, next) => {
     try {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
         if (!token) {
             return res.status(401).json({ message: "Unauthorized: No token provided" });
         }
+
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         const user = await User.findById(decodedToken.id).select("-Password -refreshToken");
         if (!user) {
             return res.status(401).json({ message: "Unauthorized: Invalid token" });
         }
+
         req.user = user;
         next();
-
     } catch (error) {
         console.error("JWT Verification Error:", error);
         return res.status(403).json({ message: "Forbidden: Invalid or expired token" });
     }
 };
 
-//1.Registration of User 
+// 1. Registration
 router.post("/register", async (req, res) => {
     try {
         const { Name, Email, Password } = req.body;
-
         if (!Name || !Email || !Password) {
-            return res.status(401).json({ message: "Submit all fields Please" })
+            return res.status(400).json({ message: "Submit all fields Please" });
         }
 
         const exsitedUser = await User.findOne({ Email });
-
         if (exsitedUser) {
-            return res.status(401).json({ message: "This user is already existed........." })
+            return res.status(401).json({ message: "This user is already existed........." });
         }
 
-        const user = await User.create({
-            Name,
-            Email,
-            Password
-        })
-
-        const createdUser = await User.findById(user._id).select('-Password -refreshToken')
-
-        if (!createdUser) {
-            return res.status(500).json({ message: "Server error during registration. Please try again later." });
-        }
+        const user = await User.create({ Name, Email, Password });
+        const createdUser = await User.findById(user._id).select("-Password -refreshToken");
 
         return res.status(201).json({ message: "User registered successfully.", user: createdUser });
-
     } catch (error) {
-
         console.error("Register Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
-
     }
-})
-//2.Login of User
+});
+
+// 2. Login
 router.post("/login", async (req, res) => {
     try {
         const { Email, Password } = req.body;
-        console.log(Email+"  " + Password);
         if (!Email || !Password) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
         const user = await User.findOne({ Email });
-        if (!user) {
-            return res.status(400).json({ message: "User not registered. Please register first." });
-        }
-        const validatePassword = await user.isPasswordCorrect(Password);
-        if (!validatePassword) {
+        if (!user || !(await user.isPasswordCorrect(Password))) {
             return res.status(400).json({ message: "Password is incorrect" });
         }
+
         const { accessToken, refreshToken } = await generateToken(user._id);
-        const loggedInUser = await User.findById(user._id).select('-password -refreshToken');
         return res.status(200)
             .cookie("accessToken", accessToken)
             .cookie("refreshToken", refreshToken)
-            .json({
-                user: loggedInUser,
-                message: "User logged in successfully."
-            });
-
+            .json({ message: "User logged in successfully.", user });
     } catch (error) {
         console.error("Login Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 });
 
-//3.Logout User
+// 3. Logout
 router.post("/logout", verifyJWT, async (req, res) => {
     try {
-        await User.findByIdAndUpdate(req.user._id, { isLoggedIn: false }); 
-
+        await User.findByIdAndUpdate(req.user._id, { isLoggedIn: false });
         return res.status(200)
             .clearCookie("accessToken")
             .clearCookie("refreshToken")
@@ -131,25 +108,22 @@ router.post("/logout", verifyJWT, async (req, res) => {
     }
 });
 
-//4.DeleteAccount
+// 4. Delete Account
 router.post("/deleteAccount", verifyJWT, async (req, res) => {
     try {
-        const deletedPosts = await Post.deleteMany({ User: req.user._id });
+        await Post.deleteMany({ User: req.user._id });
         const deletedUser = await User.findByIdAndDelete(req.user._id);
         if (!deletedUser) {
             return res.status(404).json({ message: "User not found or already deleted" });
         }
-        return res.status(200).json({ 
-            message: "Account and associated posts deleted successfully." 
-        });
+        return res.status(200).json({ message: "Account and associated posts deleted successfully." });
     } catch (error) {
         console.error("Error deleting account and posts:", error);
-        return res.status(500).json({ 
-            message: "Sorry, something went wrong during account deletion." 
-        });
+        return res.status(500).json({ message: "Sorry, something went wrong during account deletion." });
     }
 });
-//5.Create Post Route
+
+// 5. Create Post
 router.post("/uploadPost", verifyJWT, async (req, res) => {
     try {
         const { Content } = req.body;
@@ -157,59 +131,39 @@ router.post("/uploadPost", verifyJWT, async (req, res) => {
             return res.status(400).json({ message: "Content cannot be empty" });
         }
 
-        const post = await Post.create({
-            Content,
-            User: req.user._id
-        });
+        const post = await Post.create({ Content, User: req.user._id });
+        await User.findByIdAndUpdate(req.user._id, { $push: { Posts: post._id } }, { new: true });
 
-        await User.findByIdAndUpdate(
-            req.user._id,
-            { $push: { Posts: post._id } },
-            { new: true }
-        );
-
-        return res.status(201).json({
-            message: "Post created successfully.",
-            post: post
-        });
+        return res.status(201).json({ message: "Post created successfully.", post });
     } catch (error) {
         console.error("Error creating post:", error);
-        return res.status(500).json({
-            message: "Something went wrong while creating the post."
-        });
+        return res.status(500).json({ message: "Something went wrong while creating the post." });
     }
 });
 
-//6.Delete Post
+// 6. Delete Post
 router.post('/deletePost/:postId', verifyJWT, async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const post = await Post.findOne({ _id: req.params.postId, User: req.user._id });
+        const postId = req.params.postId.trim();
+        const post = await Post.findOneAndDelete({ _id: postId, User: req.user._id });
         if (!post) {
-            return res.status(404).json({ message: 'Post not found or does not belong to user' });
+            return res.status(404).json({ message: "Post not found or does not belong to user" });
         }
-
-        await Post.deleteOne({ _id: req.params.postId });
-
-        user.Posts = user.Posts.filter(postId => postId.toString() !== req.params.postId);
-        await user.save();
-
-        res.status(200).json({ message: 'Post deleted successfully' });
+        await User.findByIdAndUpdate(req.user._id, { $pull: { Posts: postId } });
+        
+        return res.status(200).json({ message: 'Post deleted successfully' });
     } catch (error) {
         console.error("Error deleting post:", error);
-        res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ message: 'Server error' });
     }
 });
 
-//Comment on Post
+
+
+// Comment on Post
 router.post('/Comment/:postId', verifyJWT, async (req, res) => {
     try {
         const { Content } = req.body;
-
         if (!Content || Content.trim() === "") {
             return res.status(400).json({ message: "Content cannot be empty" });
         }
@@ -219,31 +173,88 @@ router.post('/Comment/:postId', verifyJWT, async (req, res) => {
             return res.status(404).json({ message: "Post not found" });
         }
 
-        const comment = await Comment.create({
-            Content,
-            User: req.user._id,
-            Post: req.params.postId
-        });
+        const comment = await Comment.create({ Content, User: req.user._id, Post: req.params.postId });
+        await Post.findByIdAndUpdate(req.params.postId, { $push: { Comments: comment._id } }, { new: true });
 
-        await Post.findByIdAndUpdate(
-            req.params.postId,
-            { $push: { Comments: comment._id } },
-            { new: true }
-        );
-
-        res.status(201).json({ message: "Comment added successfully", comment });
+        return res.status(201).json({ message: "Comment added successfully", comment });
     } catch (error) {
         console.error("Error creating comment:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 
-//Get All Post
-router.get('/getAllPost',verifyJWT,async(req,res)=>{
-    const posts = await Post.find();
-    res.status(202).json({post:posts});
-})
+// 6.Get All Post
+router.get('/getAllPost', verifyJWT, async (req, res) => {
+    try {
+        const posts = await Post.find();
+        return res.status(202).json({ post: posts });
+    } catch (error) {
+        return res.status(501).json({message:"something went error"})
+    }
+});
 
-// 8. Like a Post
+// 7.Like a Post
+router.post('/likesOnPost/:postId', verifyJWT, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId);
+        if (!post) {
+            return res.status(404).json({ message: "Post Not Found" });
+        }
+
+        const userId = req.user._id;
+        const hasLiked = post.Likes.includes(userId);
+
+        if (hasLiked) {
+            return res.status(200).json({ message: "You have already liked this post" });
+        }
+        post.Likes.push(userId);
+        await post.save();
+
+        return res.status(201).json({ message: "Post liked successfully" });
+    } catch (error) {
+        console.error("Error liking post:", error);
+        return res.status(500).json({ message: "Something went wrong while liking the post." });
+    }
+});
+
+// 8.Total Likes on a Post
+router.get('/likes/:postId', verifyJWT, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId);
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        const totalLikes = post.Likes.length;
+        return res.status(200).json({ totalLikes });
+    } catch (error) {
+        console.error("Error fetching total likes:", error);
+        return res.status(500).json({ message: "Something went wrong while fetching total likes." });
+    }
+});
+
+//9. Return Posts Liked by User
+router.get('/returnpost', verifyJWT, async (req, res) => {
+    try {
+        const likedPosts = await Post.find({ Likes: req.user._id });
+        if (likedPosts.length === 0) {
+            return res.status(404).json({ message: "No liked posts found for this user." });
+        }
+        return res.status(200).json({ likedPosts });
+    } catch (error) {
+        console.error("Error fetching liked posts:", error);
+        return res.status(500).json({ message: "Something went wrong while fetching liked posts." });
+    }
+});
+
+// 10. Get All Posts of Logged-In User
+router.get('/userPosts', verifyJWT, async (req, res) => {
+    try {
+        const userPosts = await Post.find({ User: req.user._id }).populate('Comments Likes');
+        return res.status(200).json({ message: "User's posts retrieved successfully", userPosts });
+    } catch (error) {
+        console.error("Error fetching user's posts:", error);
+        return res.status(500).json({ message: "Error retrieving posts for the user" });
+    }
+});
 
 export default router;
