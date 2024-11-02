@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function App() {
+function Footer() {
   const [open, setOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -115,4 +115,4 @@ function App() {
   );
 }
 
-export default App;
+export default Footer;

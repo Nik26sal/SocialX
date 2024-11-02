@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function App() {
+function UploadPost() {
   const [upload, setUpload] = useState(false);
   
   const toggle = () => {
@@ -50,4 +50,4 @@ function App() {
   );
 }
 
-export default App;
+export default UploadPost;

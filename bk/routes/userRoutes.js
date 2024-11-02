@@ -257,4 +257,24 @@ router.get('/userPosts', verifyJWT, async (req, res) => {
     }
 });
 
+//11.Unlike route
+router.post('/unlikepost/:postId',verifyJWT,async(req,res)=>{
+    try {
+        const post = await Post.findById({_id:req.params.postId})
+        if(!post){
+            return res.status(405).json({message:"post NOt found"});
+        }
+        if(!post.Likes.includes(req.user._id)){
+            return res.status(400).json({ message: "post not yet liked." });
+        }
+        post.Likes = post.Likes.filter(id => !id.equals(userId));
+            await post.save();
+    
+            return res.status(200).json({ message: "post unliked successfully." });
+    } catch (error) {
+        console.error("Unlike Video Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+})
+
 export default router;

@@ -7,7 +7,7 @@ const carouselItems = [
   "https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmxvZ3xlbnwwfHwwfHx8MA%3D%3D"
 ];
 
-function App() {
+function Sign_in_aur_up() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLogin, setIsLogin] = useState(false);
 
@@ -119,4 +119,4 @@ function App() {
   );
 }
 
-export default App;
+export default Sign_in_aur_up;
