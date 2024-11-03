@@ -1,19 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Async actions for registration, login, and logout
+// Async actions for user registration, login, and logout
 export const registerUser = createAsyncThunk('auth/registerUser', async (userData) => {
-    const response = await axios.post('/api/register', userData);
+    const response = await axios.post('http://localhost:5555/user/register', userData);
     return response.data;
 });
 
 export const loginUser = createAsyncThunk('auth/loginUser', async (userData) => {
-    const response = await axios.post('/api/login', userData);
+    const response = await axios.post('http://localhost:5555/user/login', userData);
     return response.data;
 });
 
 export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
-    const response = await axios.post('/api/logout');
+    const response = await axios.post('http://localhost:5555/user/logout');
     return response.data;
 });
 
@@ -44,16 +44,19 @@ const authSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Handle registerUser action fulfilled
             .addCase(registerUser.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.status = 'succeeded';
             })
+            // Handle loginUser action fulfilled
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.accessToken = action.payload.accessToken;
                 state.refreshToken = action.payload.refreshToken;
                 state.isAuthenticated = true;
             })
+            // Handle logoutUser action fulfilled
             .addCase(logoutUser.fulfilled, (state) => {
                 state.user = null;
                 state.accessToken = null;
