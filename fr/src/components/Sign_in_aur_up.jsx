@@ -1,3 +1,4 @@
+// Sign_in_aur_up.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -10,7 +11,7 @@ const carouselItems = [
 
 function Sign_in_aur_up() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselItems.length);
@@ -33,8 +34,6 @@ function Sign_in_aur_up() {
         </Link>
       </div>
       <div className="w-full sm:w-3/4 lg:w-3/5 flex flex-col sm:flex-row rounded-lg shadow-lg overflow-hidden">
-        
-        {/* Carousel Section */}
         <div
           className="w-full sm:w-1/2 h-64 sm:h-auto flex items-center justify-center bg-cover bg-center"
           style={{
@@ -47,7 +46,6 @@ function Sign_in_aur_up() {
           </div>
         </div>
 
-        {/* Form Section */}
         <div className="w-full sm:w-1/2 bg-yellow-50 p-8 flex items-center justify-center">
           <form className="w-full max-w-sm space-y-4">
             <h2 className="text-xl font-bold text-center">{isLogin ? 'Login' : 'Register'}</h2>
@@ -102,13 +100,13 @@ function Sign_in_aur_up() {
               </button>
             </div>
 
-            <div className="text-center mt-4">
+            <div className="text-center">
               <button
                 type="button"
                 onClick={toggleForm}
-                className="text-sm text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline"
               >
-                {isLogin ? 'Switch to Register' : 'Switch to Login'}
+                {isLogin ? 'Don’t have an account? Register' : 'Already have an account? Login'}
               </button>
             </div>
           </form>

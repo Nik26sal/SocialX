@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Async actions for user registration, login, and logout
+// Async Thunks for user authentication actions
 export const registerUser = createAsyncThunk('auth/registerUser', async (userData) => {
     const response = await axios.post('http://localhost:5555/user/register', userData);
     return response.data;
@@ -17,19 +17,22 @@ export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
     return response.data;
 });
 
+// Initial state for the auth slice
+const initialState = {
+    user: null,
+    accessToken: null,
+    refreshToken: null,
+    isAuthenticated: false,
+    status: 'idle', // status can be 'idle', 'loading', 'succeeded', 'failed'
+    error: null,
+};
+
 // Slice definition
 const authSlice = createSlice({
     name: 'auth',
-    initialState: {
-        user: null,
-        accessToken: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        status: 'idle',
-        error: null
-    },
+    initialState,
     reducers: {
-        setCredentials: (state, action) => {
+        setAuth: (state, action) => {
             state.user = action.payload.user;
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
@@ -40,31 +43,46 @@ const authSlice = createSlice({
             state.accessToken = null;
             state.refreshToken = null;
             state.isAuthenticated = false;
-        }
+        },
     },
     extraReducers: (builder) => {
         builder
-            // Handle registerUser action fulfilled
             .addCase(registerUser.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.status = 'succeeded';
+                state.error = null; // Reset error on success
             })
-            // Handle loginUser action fulfilled
+            .addCase(registerUser.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.error.message; // Capture error message
+            })
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.accessToken = action.payload.accessToken;
                 state.refreshToken = action.payload.refreshToken;
                 state.isAuthenticated = true;
+                state.status = 'succeeded';
+                state.error = null; // Reset error on success
             })
-            // Handle logoutUser action fulfilled
+            .addCase(loginUser.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.error.message; // Capture error message
+            })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.user = null;
                 state.accessToken = null;
                 state.refreshToken = null;
                 state.isAuthenticated = false;
+                state.status = 'succeeded';
+                state.error = null; // Reset error on logout
+            })
+            .addCase(logoutUser.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.error.message; // Capture error message
             });
-    }
+    },
 });
 
-export const { setCredentials, clearAuth } = authSlice.actions;
+// Export actions and reducer
+export const { setAuth, clearAuth } = authSlice.actions;
 export default authSlice.reducer;

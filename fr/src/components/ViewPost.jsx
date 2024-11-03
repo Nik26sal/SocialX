@@ -1,19 +1,26 @@
-import  { useState } from 'react';
+// ViewPost.jsx
+import { useEffect, useState } from 'react';
 
-function ViewPosts() {
-  // Sample posts data
-  const posts = [
-    { author: "Nikhil Bansal", content:"Lorem ipsum dolor sit, amet consectetur adipisicing elit. Non dignissimos illum impedit, natus neque aliquid aut quam quaerat, error voluptas sequi vel similique esse omnis beatae eligendi possimus reiciendis id.", initialLikes: 10 },
-    { author: "Alex Johnson", content:"Lorem ipsum dolor sit, amet consectetur adipisicing elit. Non dignissimos illum impedit, natus neque aliquid aut quam quaerat, error voluptas sequi vel similique esse omnis beatae eligendi possimus reiciendis id.", initialLikes: 5 },
-    { author: "Jamie Lee", content: "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Non dignissimos illum impedit, natus neque aliquid aut quam quaerat, error voluptas sequi vel similique esse omnis beatae eligendi possimus reiciendis id.", initialLikes: 20 },
-    { author: "Samantha Kim", content:"Lorem ipsum dolor sit, amet consectetur adipisicing elit. Non dignissimos illum impedit, natus neque aliquid aut quam quaerat, error voluptas sequi vel similique esse omnis beatae eligendi possimus reiciendis id." , initialLikes: 8 },
-  ];
-
-  // State to keep track of the current post index
+function ViewPost() {
+  const [posts, setPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
-  const [likes, setLikes] = useState(posts.map(post => post.initialLikes));
+  const [likes, setLikes] = useState([]);
 
-  // Handlers for navigation
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch('/api/posts'); // Replace with your actual API endpoint
+        const data = await response.json();
+        setPosts(data);
+        setLikes(data.map(post => post.initialLikes)); // Set initial likes
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   const handleNextPost = () => {
     if (currentPostIndex < posts.length - 1) {
       setCurrentPostIndex(currentPostIndex + 1);
@@ -26,21 +33,33 @@ function ViewPosts() {
     }
   };
 
-  // Handler for liking a post
-  const handleLike = () => {
-    setLikes(prevLikes => {
-      const updatedLikes = [...prevLikes];
-      updatedLikes[currentPostIndex] += 1;
-      return updatedLikes;
-    });
+  const handleLike = async () => {
+    const updatedLikes = [...likes];
+    updatedLikes[currentPostIndex] += 1;
+    setLikes(updatedLikes);
+
+    // Send the updated likes to the server
+    try {
+      await fetch(`/api/posts/${posts[currentPostIndex].id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ likes: updatedLikes[currentPostIndex] }),
+      });
+    } catch (error) {
+      console.error('Failed to update likes:', error);
+    }
   };
 
-  // Get the current post data
+  if (posts.length === 0) {
+    return <div>Loading...</div>; // Handle loading state
+  }
+
   const currentPost = posts[currentPostIndex];
 
   return (
     <div className='h-screen w-screen flex flex-col items-center justify-center bg-gray-100'>
-      {/* Up Arrow - Positioned Above the Card */}
       <button
         onClick={handlePreviousPost}
         disabled={currentPostIndex === 0}
@@ -49,15 +68,12 @@ function ViewPosts() {
         ↑
       </button>
 
-      {/* Card */}
       <div className='w-96 bg-white rounded-lg shadow-lg p-6 flex flex-col items-center'>
         <header className='w-full border-b pb-3 mb-4 text-center'>
           <h2 className='text-xl font-bold text-gray-800'>{currentPost.author}</h2>
         </header>
         <main className='flex-1 text-gray-700 mb-6 text-center'>
-          <p>
-            {currentPost.content}
-          </p>
+          <p>{currentPost.content}</p>
         </main>
         <footer className='w-full'>
           <button
@@ -69,7 +85,6 @@ function ViewPosts() {
         </footer>
       </div>
 
-      {/* Down Arrow - Positioned Below the Card */}
       <button
         onClick={handleNextPost}
         disabled={currentPostIndex === posts.length - 1}
@@ -81,4 +96,4 @@ function ViewPosts() {
   );
 }
 
-export default ViewPosts;
+export default ViewPost;

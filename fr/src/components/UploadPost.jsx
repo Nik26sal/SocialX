@@ -1,52 +1,73 @@
+// UploadPost.jsx
 import { useState } from 'react';
 
 function UploadPost() {
-  const [upload, setUpload] = useState(false);
-  
-  const toggle = () => {
-    setUpload((prev) => !prev);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const post = { title, content };
+
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post),
+      });
+      if (response.ok) {
+        alert('Post uploaded successfully!');
+        setTitle('');
+        setContent('');
+      } else {
+        throw new Error('Failed to upload post');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error uploading post');
+    }
   };
 
   return (
-    <>
-      <div className="border w-screen h-screen flex justify-center items-center relative">
-        {!upload ? (
-          <div 
-            onClick={toggle} 
-            className="border border-blue-900 bg-blue-600 text-white flex justify-center items-center rounded-full w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 cursor-pointer"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 24 24" 
-              fill="currentColor" 
-              className="w-8 h-8 md:w-12 md:h-12 lg:w-16 lg:h-16"
-            >
-              <path 
-                fillRule="evenodd" 
-                d="M12 4a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H5a1 1 0 110-2h6V5a1 1 0 011-1z" 
-                clipRule="evenodd" 
-              />
-            </svg>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <label htmlFor="content" className="mb-2 text-lg font-semibold">Enter Your Content</label>
-            <input 
-              id="content" 
-              type="text" 
-              placeholder="Enter your content" 
-              className="mb-4 p-2 border rounded w-64 md:w-80 lg:w-96"
-            />
-            <button 
-              onClick={toggle}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Upload
-            </button>
-          </div>
-        )}
-      </div>
-    </>
+    <div className="flex flex-col items-center justify-center h-screen w-screen  bg-gray-100">
+      <h1 className="text-2xl font-bold mb-4">Upload New Post</h1>
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6 w-80">
+        <div className="mb-4">
+          <label htmlFor="title" className="block text-sm font-bold mb-1">
+            Title
+          </label>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:border-blue-500"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="content" className="block text-sm font-bold mb-1">
+            Content
+          </label>
+          <textarea
+            id="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:border-blue-500"
+            rows="5"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition duration-200"
+        >
+          Upload Post
+        </button>
+      </form>
+    </div>
   );
 }
 
