@@ -12,7 +12,7 @@ function Profile() {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center bg-gray-100 p-6">
+    <div className="h-screen flex flex-col w-screen items-center bg-gray-100 p-6">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-md p-6 mb-6 text-center">
         <h1 className="text-3xl font-bold text-gray-800">{user.name}</h1>
         <p className="text-gray-600 mt-2">Total Likes: <span className="font-semibold">{user.totalLikes}</span></p>

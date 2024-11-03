@@ -9,7 +9,7 @@ function UploadPost() {
 
   return (
     <>
-      <div className="border border-red-500 h-screen flex justify-center items-center relative">
+      <div className="border w-screen h-screen flex justify-center items-center relative">
         {!upload ? (
           <div 
             onClick={toggle} 
