@@ -8,6 +8,7 @@ export const registerUser = createAsyncThunk('auth/registerUser', async (userDat
 });
 
 export const loginUser = createAsyncThunk('auth/loginUser', async (userData) => {
+    console.log(userData)
     const response = await axios.post('http://localhost:5555/user/login', userData);
     return response.data;
 });
@@ -23,7 +24,7 @@ const initialState = {
     accessToken: null,
     refreshToken: null,
     isAuthenticated: false,
-    status: 'idle', // status can be 'idle', 'loading', 'succeeded', 'failed'
+    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     error: null,
 };
 
@@ -47,14 +48,21 @@ const authSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(registerUser.pending, (state) => {
+                state.status = 'loading';
+            })
             .addCase(registerUser.fulfilled, (state, action) => {
                 state.user = action.payload.user;
+                state.isAuthenticated = true;
                 state.status = 'succeeded';
-                state.error = null; // Reset error on success
+                state.error = null;
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.status = 'failed';
-                state.error = action.error.message; // Capture error message
+                state.error = action.error.message || 'Failed to register';
+            })
+            .addCase(loginUser.pending, (state) => {
+                state.status = 'loading';
             })
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.user = action.payload.user;
@@ -62,11 +70,15 @@ const authSlice = createSlice({
                 state.refreshToken = action.payload.refreshToken;
                 state.isAuthenticated = true;
                 state.status = 'succeeded';
-                state.error = null; // Reset error on success
+                state.error = null;
+                console.log(state.user)
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.status = 'failed';
-                state.error = action.error.message; // Capture error message
+                state.error = action.error.message || 'Failed to login';
+            })
+            .addCase(logoutUser.pending, (state) => {
+                state.status = 'loading';
             })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.user = null;
@@ -74,15 +86,14 @@ const authSlice = createSlice({
                 state.refreshToken = null;
                 state.isAuthenticated = false;
                 state.status = 'succeeded';
-                state.error = null; // Reset error on logout
+                state.error = null;
             })
             .addCase(logoutUser.rejected, (state, action) => {
                 state.status = 'failed';
-                state.error = action.error.message; // Capture error message
+                state.error = action.error.message || 'Failed to logout';
             });
     },
 });
 
-// Export actions and reducer
 export const { setAuth, clearAuth } = authSlice.actions;
 export default authSlice.reducer;
