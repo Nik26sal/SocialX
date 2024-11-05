@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch} from 'react-redux';
 import { loginUser, registerUser } from '../features/authSlice.js';
 import axios from 'axios';
 
@@ -23,14 +23,13 @@ function Sign_in_aur_up() {
     try {
       let response;
       if (isLogin) {
-        console.log(`Attempting login with: ${input.Email}, ${input.Password}`);
         response = await axios.post('http://localhost:5555/user/login', { 
           Email: input.Email, 
           Password: input.Password 
         }, { 
           withCredentials: true 
         });
-        console.log(response.data.user)
+        alert(`Welocme ${response.data.user.Name}`)
         dispatch(loginUser(response.data.user));
       } else {
         response = await axios.post('http://localhost:5555/user/register', { 
@@ -38,6 +37,7 @@ function Sign_in_aur_up() {
           Email: input.Email, 
           Password: input.Password 
         });
+        alert(response?.data?.message || "User registered..")
         dispatch(registerUser(response.data.user));
       }
       navigate('/');
@@ -102,7 +102,7 @@ function Sign_in_aur_up() {
                 Email
               </label>
               <input
-                type="email" // Use 'email' for correct validation
+                type="email" 
                 id="Email"
                 value={input.Email}
                 onChange={(e) => setInput({ ...input, Email: e.target.value })}
@@ -117,7 +117,7 @@ function Sign_in_aur_up() {
                 Password
               </label>
               <input
-                type="password" // Use 'password' for correct validation
+                type="password"
                 id="Password"
                 value={input.Password}
                 onChange={(e) => setInput({ ...input, Password: e.target.value })}

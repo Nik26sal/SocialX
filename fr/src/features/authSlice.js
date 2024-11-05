@@ -24,7 +24,7 @@ const initialState = {
     accessToken: null,
     refreshToken: null,
     isAuthenticated: false,
-    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+    status: 'idle',
     error: null,
 };
 
