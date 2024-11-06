@@ -1,25 +1,25 @@
 // ViewPost.jsx
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 function ViewPost() {
   const [posts, setPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [likes, setLikes] = useState([]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('/api/posts'); // Replace with your actual API endpoint
-        const data = await response.json();
-        setPosts(data);
-        setLikes(data.map(post => post.initialLikes)); // Set initial likes
-      } catch (error) {
-        console.error('Failed to fetch posts:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     try {
+  //       const response = await axios.get("http://localhost:5555/user/getAllPost");
+  //       setPosts(response.data); // Set posts from response data
+  //       setLikes(response.data.map(post => post.initialLikes)); // Set initial likes
+  //     } catch (error) {
+  //       console.error('Failed to fetch posts:', error);
+  //     }
+  //   };
 
-    fetchPosts();
-  }, []);
+  //   fetchPosts();
+  // }, []);
 
   const handleNextPost = () => {
     if (currentPostIndex < posts.length - 1) {

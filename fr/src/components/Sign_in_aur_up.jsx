@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch} from 'react-redux';
-import { loginUser, registerUser } from '../features/authSlice.js';
+import { useDispatch } from 'react-redux';
+import { setAuth } from '../features/authSlice';
 import axios from 'axios';
 
 const carouselItems = [
@@ -29,18 +29,28 @@ function Sign_in_aur_up() {
         }, { 
           withCredentials: true 
         });
-        alert(`Welocme ${response.data.user.Name}`)
-        dispatch(loginUser(response.data.user));
+        alert(`Welcome ${response.data.user.Name}`);
+        console.log(`AccessToken : ${response.data.accessToken}`)
+        console.log(response.data.refreshToken)
+        dispatch(setAuth({
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken,
+        }));
+        navigate('/')
       } else {
         response = await axios.post('http://localhost:5555/user/register', { 
           Name: input.Name, 
           Email: input.Email, 
           Password: input.Password 
         });
-        alert(response?.data?.message || "User registered..")
-        dispatch(registerUser(response.data.user));
+        alert(response?.data?.message || "User registered successfully.");
+        dispatch(setAuth({
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken,
+        }));
       }
-      navigate('/');
     } catch (error) {
       console.error("Authentication error:", error.response?.data?.message || error.message);
       alert(error.response?.data?.message || "An error occurred");

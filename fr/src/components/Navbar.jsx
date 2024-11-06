@@ -1,19 +1,28 @@
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { logoutUser } from "../features/authSlice";
+import { clearAuth } from "../features/authSlice";
+import axios from "axios";
 
 function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  const handleLogout = () => {
-    dispatch(logoutUser())
-      .unwrap()
-      .then(() => {
-        navigate("/sign_in_up"); 
-      })
-      .catch((error) => console.error("Logout error:", error));
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post('http://localhost:5555/user/logout', {}, {
+        withCredentials: true 
+      });
+      
+      if (response.status === 200) {
+        dispatch(clearAuth());
+        alert("User Logout Successfully");
+        navigate('/sign_in_up');
+      }
+    } catch (error) {
+      console.error("Logout failed:", error.response?.data?.message || error.message);
+      alert(error.response?.data?.message || "Failed to log out. Please try again.");
+    }
   };
 
   return (
