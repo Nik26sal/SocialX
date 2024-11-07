@@ -1,25 +1,32 @@
-// UploadPost.jsx
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { addPost } from '../features/postSlice';
+import axios from 'axios';
 
 function UploadPost() {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [Content, setContent] = useState('');
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const post = { title, content };
+    const post = { Content };
 
     try {
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(post),
-      });
-      if (response.ok) {
+      const response = await axios.post(
+        'http://localhost:5555/user/uploadPost',
+        post,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        const newPost = response.data;
+        dispatch(addPost(newPost.post)); 
         alert('Post uploaded successfully!');
-        setTitle('');
         setContent('');
       } else {
         throw new Error('Failed to upload post');
@@ -31,29 +38,16 @@ function UploadPost() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen  bg-gray-100">
+    <div className="flex flex-col items-center justify-center h-screen w-screen bg-gray-100">
       <h1 className="text-2xl font-bold mb-4">Upload New Post</h1>
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6 w-80">
         <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-bold mb-1">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:border-blue-500"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="content" className="block text-sm font-bold mb-1">
+          <label htmlFor="Content" className="block text-sm font-bold mb-1">
             Content
           </label>
           <textarea
-            id="content"
-            value={content}
+            id="Content"
+            value={Content}
             onChange={(e) => setContent(e.target.value)}
             className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:border-blue-500"
             rows="5"

@@ -7,7 +7,6 @@ function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-
   const handleLogout = async () => {
     try {
       const response = await axios.post('http://localhost:5555/user/logout', {}, {
@@ -16,6 +15,9 @@ function Navbar() {
       
       if (response.status === 200) {
         dispatch(clearAuth());
+        localStorage.clear();
+        document.cookie = "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; secure; SameSite=Strict";
+        document.cookie = "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; secure; SameSite=Strict";
         alert("User Logout Successfully");
         navigate('/sign_in_up');
       }
@@ -24,7 +26,7 @@ function Navbar() {
       alert(error.response?.data?.message || "Failed to log out. Please try again.");
     }
   };
-
+  
   return (
     <div className="flex justify-between items-center shadow-lg p-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white mx-auto">
       <div className="text-3xl font-bold tracking-wide flex items-center">

@@ -29,34 +29,49 @@ function Sign_in_aur_up() {
         }, { 
           withCredentials: true 
         });
+  
         alert(`Welcome ${response.data.user.Name}`);
-        console.log(`AccessToken : ${response.data.accessToken}`)
-        console.log(response.data.refreshToken)
+        console.log(`AccessToken : ${response.data.accessToken}`);
+        console.log(response.data.refreshToken);
+  
+        // Store tokens in localStorage
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+  
+        // Dispatch to Redux state
         dispatch(setAuth({
           user: response.data.user,
           accessToken: response.data.accessToken,
           refreshToken: response.data.refreshToken,
         }));
-        navigate('/')
+        navigate('/');
       } else {
         response = await axios.post('http://localhost:5555/user/register', { 
           Name: input.Name, 
           Email: input.Email, 
           Password: input.Password 
         });
+  
         alert(response?.data?.message || "User registered successfully.");
-        dispatch(setAuth({
-          user: response.data.user,
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken,
-        }));
+
+        if (response.data.accessToken && response.data.refreshToken) {
+          localStorage.setItem('accessToken', response.data.accessToken);
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+          dispatch(setAuth({
+            user: response.data.user,
+            accessToken: response.data.accessToken,
+            refreshToken: response.data.refreshToken,
+          }));
+        }
+  
+        setIsLogin((prev) => !prev);
       }
     } catch (error) {
       console.error("Authentication error:", error.response?.data?.message || error.message);
       alert(error.response?.data?.message || "An error occurred");
     }
   };
-
+  
   const toggleForm = () => {
     setIsLogin(!isLogin);
     setInput({ Name: '', Email: '', Password: '' });
