@@ -1,34 +1,40 @@
-// Profile.jsx
-import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 function Profile() {
-  const [user, setUser] = useState(null);
+  const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await fetch('/api/user/profile'); // Replace with your actual API endpoint
-        const data = await response.json();
-        setUser(data);
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
+  const handleNavigation = () => {
+    navigate('/sign_in_up');
+  };
 
   if (!user) {
-    return <div>Loading...</div>; 
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100 w-screen">
+        <h1 className="text-2xl font-bold mb-4">Profile</h1>
+        <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+          <h2 className="text-xl font-semibold">Any User Not Registered Yet...</h2>
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={handleNavigation}
+              className="text-blue-500 hover:underline"
+            >
+              --- Register or Login to the Website ---
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 w-screen">
       <h1 className="text-2xl font-bold mb-4">Profile</h1>
       <div className="bg-white rounded-lg shadow-lg p-6 w-80">
         <h2 className="text-xl font-semibold">{user.Name}</h2>
-        <p className="text-gray-600">Email: {user.email}</p>
-        <p className="text-gray-600">Username: {user.username}</p>
+        <p className="text-gray-600">Total-Posts: {user.Posts ? user.Posts.length : 0}</p>
       </div>
     </div>
   );

@@ -1,15 +1,17 @@
-// authSlice.js
+
 import { createSlice } from '@reduxjs/toolkit';
 
-// Initial state for the auth slice
+const savedUser = JSON.parse(localStorage.getItem('user'));
+const savedAccessToken = localStorage.getItem('accessToken');
+const savedRefreshToken = localStorage.getItem('refreshToken');
+
 const initialState = {
-    user: null,
-    accessToken: null,
-    refreshToken: null,
-    isAuthenticated: false,
+    user: savedUser || null,
+    accessToken: savedAccessToken || null,
+    refreshToken: savedRefreshToken || null,
+    isAuthenticated: !!savedUser && !!savedAccessToken,
 };
 
-// Slice definition
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -19,12 +21,19 @@ const authSlice = createSlice({
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
             state.isAuthenticated = true;
+
+            localStorage.setItem('user', JSON.stringify(action.payload.user));
+            localStorage.setItem('accessToken', action.payload.accessToken);
+            localStorage.setItem('refreshToken', action.payload.refreshToken);
         },
         clearAuth: (state) => {
             state.user = null;
             state.accessToken = null;
             state.refreshToken = null;
             state.isAuthenticated = false;
+            localStorage.removeItem('user');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
         },
     },
 });
