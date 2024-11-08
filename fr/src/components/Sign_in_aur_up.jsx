@@ -33,12 +33,10 @@ function Sign_in_aur_up() {
         alert(`Welcome ${response.data.user.Name}`);
         console.log(`AccessToken : ${response.data.accessToken}`);
         console.log(response.data.refreshToken);
-  
-        // Store tokens in localStorage
+
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
   
-        // Dispatch to Redux state
         dispatch(setAuth({
           user: response.data.user,
           accessToken: response.data.accessToken,

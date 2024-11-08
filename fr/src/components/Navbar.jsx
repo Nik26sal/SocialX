@@ -16,8 +16,6 @@ function Navbar() {
       if (response.status === 200) {
         dispatch(clearAuth());
         localStorage.clear();
-        document.cookie = "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; secure; SameSite=Strict";
-        document.cookie = "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; secure; SameSite=Strict";
         alert("User Logout Successfully");
         navigate('/sign_in_up');
       }
