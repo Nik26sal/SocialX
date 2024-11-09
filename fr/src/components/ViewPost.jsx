@@ -1,25 +1,38 @@
-// ViewPost.jsx
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { useNavigate } from 'react-router';
 
 function ViewPost() {
   const [posts, setPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
-  const [likes, setLikes] = useState([]);
+  const navigate = useNavigate()
+  const user = useSelector((state) => state.auth.user);
+  const userId = user?._id;
 
-  // useEffect(() => {
-  //   const fetchPosts = async () => {
-  //     try {
-  //       const response = await axios.get("http://localhost:5555/user/getAllPost");
-  //       setPosts(response.data); // Set posts from response data
-  //       setLikes(response.data.map(post => post.initialLikes)); // Set initial likes
-  //     } catch (error) {
-  //       console.error('Failed to fetch posts:', error);
-  //     }
-  //   };
+  useEffect(() => {
+    if (!userId) return; 
 
-  //   fetchPosts();
-  // }, []);
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get("http://localhost:5555/user/getAllPost",{withCredentials:true});
+        console.log(response);
+        const postsData = response.data.post.map((post) => ({
+          ...post,
+          isLiked: post.Likes.includes(userId),
+        }));
+        setPosts(postsData);
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      }
+    };
+
+    fetchPosts();
+  }, [userId]);
+
+  const handleNavigation = () => {
+    navigate('/sign_in_up');
+  };
 
   const handleNextPost = () => {
     if (currentPostIndex < posts.length - 1) {
@@ -33,27 +46,43 @@ function ViewPost() {
     }
   };
 
-  const handleLike = async () => {
-    const updatedLikes = [...likes];
-    updatedLikes[currentPostIndex] += 1;
-    setLikes(updatedLikes);
-
-    // Send the updated likes to the server
+  const handleLikeToggle = async () => {
+    const post = posts[currentPostIndex];
+    const endpoint = post.isLiked 
+      ? `http://localhost:5555/user/unlikepost/${post._id}` 
+      : `http://localhost:5555/user/likesOnPost/${post._id}`;
+    
     try {
-      await fetch(`/api/posts/${posts[currentPostIndex].id}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ likes: updatedLikes[currentPostIndex] }),
-      });
+      await axios.post(endpoint);
+      const updatedPosts = [...posts];
+      updatedPosts[currentPostIndex].isLiked = !post.isLiked;
+      setPosts(updatedPosts);
     } catch (error) {
-      console.error('Failed to update likes:', error);
+      console.error(`Failed to ${post.isLiked ? "unlike" : "like"} post:`, error);
     }
   };
 
+  if (!userId) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100 w-screen">
+        <h1 className="text-2xl font-bold mb-4">Profile</h1>
+        <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+          <h2 className="text-xl font-semibold">No User Registered Yet...</h2>
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={handleNavigation}
+              className="text-blue-500 hover:underline"
+            >
+              --- Register or Login to the Website ---
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (posts.length === 0) {
-    return <div>Loading...</div>; // Handle loading state
+    return <div>Loading posts...</div>;
   }
 
   const currentPost = posts[currentPostIndex];
@@ -73,14 +102,14 @@ function ViewPost() {
           <h2 className='text-xl font-bold text-gray-800'>{currentPost.author}</h2>
         </header>
         <main className='flex-1 text-gray-700 mb-6 text-center'>
-          <p>{currentPost.content}</p>
+          <p>{currentPost.Content}</p>
         </main>
         <footer className='w-full'>
           <button
-            onClick={handleLike}
-            className='w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200'
+            onClick={handleLikeToggle}
+            className={`w-full py-2 rounded-md transition duration-200 ${currentPost.isLiked ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
           >
-            Likes: {likes[currentPostIndex]}
+            {currentPost.isLiked ? 'Unlike' : 'Like'}: {currentPost.Likes.length}
           </button>
         </footer>
       </div>

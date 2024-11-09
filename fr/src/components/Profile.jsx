@@ -71,21 +71,31 @@ function Profile() {
 
       {status === 'loading' && <p>Loading posts...</p>}
       {status === 'failed' && <p>Error loading posts.</p>}
+      <h1 className='mt-4 text-xl font-bold'>
+        Uploaded Posts
+      </h1>
+      <div className="mt-4 overflow-y-auto">
+        {posts.map((post) => {
+          const createdAt = new Date(post.createdAt);
+          const formattedDate = createdAt.toLocaleDateString();
+          const formattedTime = createdAt.toLocaleTimeString();
 
-      <div className="mt-4">
-        {posts.map((post) => (
-          <div key={post._id} className="bg-white rounded-lg shadow-md p-4 mb-4 w-80">
-            <h3 className="text-lg font-bold">{post.title}</h3>
-            <p className="text-gray-600">{post.Content}</p>
-            <p className="text-gray-600">Likes: {post.Likes?.length || 0}</p>
-            <button
-              onClick={() => handleDeletePost(post._id)}
-              className="text-red-500 hover:underline mt-2"
-            >
-              Delete Post
-            </button>
-          </div>
-        ))}
+          return (
+            <div key={post._id} className="bg-white rounded-lg shadow-md p-2 mb-4 w-80">
+              <h3 className="text-lg font-bold">{post.title}</h3>
+              <p className="text-gray-600">{post.Content}</p>
+              <p className="text-gray-600">Likes: {post.Likes?.length || 0}</p>
+              <p className="text-gray-600">Date: {formattedDate}</p>
+              <p className="text-gray-600">Time: {formattedTime}</p>
+              <button
+                onClick={() => handleDeletePost(post._id)}
+                className="text-red-500 hover:underline mt-2"
+              >
+                Delete Post
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
