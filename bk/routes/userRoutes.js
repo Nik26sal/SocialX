@@ -194,7 +194,7 @@ router.post('/Comment/:postId', verifyJWT, async (req, res) => {
 // 6.Get All Post
 router.get('/getAllPost', verifyJWT, async (req, res) => {
     try {
-        const posts = await Post.find();
+        const posts = await Post.find().populate('User','Name');
         return res.status(202).json({ post: posts });
     } catch (error) {
         return res.status(501).json({message:"something went error"})

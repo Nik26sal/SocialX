@@ -6,29 +6,31 @@ import { useNavigate } from 'react-router';
 function ViewPost() {
   const [posts, setPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
   const userId = user?._id;
 
   useEffect(() => {
-    if (!userId) return; 
+    if (!userId) return;
 
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:5555/user/getAllPost",{withCredentials:true});
-        console.log(response);
-        const postsData = response.data.post.map((post) => ({
-          ...post,
-          isLiked: post.Likes.includes(userId),
-        }));
+        const response = await axios.get("http://localhost:5555/user/getAllPost", { withCredentials: true });
+        const postsData = response.data.post
+          .filter(post => post.User._id !== userId) // Filter posts by userId
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort in descending order by date
+
         setPosts(postsData);
       } catch (error) {
         console.error('Failed to fetch posts:', error);
+        if (error.response && error.response.status === 401) {
+          navigate('/sign_in_up'); // Redirect to login if unauthorized
+        }
       }
     };
 
     fetchPosts();
-  }, [userId]);
+  }, [userId, navigate]);
 
   const handleNavigation = () => {
     navigate('/sign_in_up');
@@ -48,17 +50,20 @@ function ViewPost() {
 
   const handleLikeToggle = async () => {
     const post = posts[currentPostIndex];
-    const endpoint = post.isLiked 
-      ? `http://localhost:5555/user/unlikepost/${post._id}` 
+    const endpoint = post.isLiked
+      ? `http://localhost:5555/user/unlikepost/${post._id}`
       : `http://localhost:5555/user/likesOnPost/${post._id}`;
-    
+
     try {
-      await axios.post(endpoint);
+      await axios.post(endpoint, {}, { withCredentials: true });
       const updatedPosts = [...posts];
       updatedPosts[currentPostIndex].isLiked = !post.isLiked;
       setPosts(updatedPosts);
     } catch (error) {
       console.error(`Failed to ${post.isLiked ? "unlike" : "like"} post:`, error);
+      if (error.response && error.response.status === 401) {
+        navigate('/sign_in_up'); // Redirect to login if unauthorized
+      }
     }
   };
 
@@ -81,11 +86,13 @@ function ViewPost() {
       </div>
     );
   }
+
   if (posts.length === 0) {
     return <div>Loading posts...</div>;
   }
 
   const currentPost = posts[currentPostIndex];
+  const postDate = new Date(currentPost.createdAt); 
 
   return (
     <div className='h-screen w-screen flex flex-col items-center justify-center bg-gray-100'>
@@ -99,7 +106,7 @@ function ViewPost() {
 
       <div className='w-96 bg-white rounded-lg shadow-lg p-6 flex flex-col items-center'>
         <header className='w-full border-b pb-3 mb-4 text-center'>
-          <h2 className='text-xl font-bold text-gray-800'>{currentPost.author}</h2>
+          <h2 className='text-xl font-bold text-gray-800'>UserName: {currentPost.User.Name}</h2> 
         </header>
         <main className='flex-1 text-gray-700 mb-6 text-center'>
           <p>{currentPost.Content}</p>
@@ -109,9 +116,13 @@ function ViewPost() {
             onClick={handleLikeToggle}
             className={`w-full py-2 rounded-md transition duration-200 ${currentPost.isLiked ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
           >
-            {currentPost.isLiked ? 'Unlike' : 'Like'}: {currentPost.Likes.length}
+            {currentPost.isLiked ? 'Unlike' : 'Like'}: {currentPost.Likes?.length|| 0}
           </button>
         </footer>
+        <h2>
+          Date: {postDate.toLocaleDateString()} &nbsp;
+          Time: {postDate.toLocaleTimeString()}
+        </h2>
       </div>
 
       <button
