@@ -1,7 +1,6 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
-import { Comment } from "../models/commentModel.js";
 import { Post } from "../models/postModel.js";
 
 const router = Router();
@@ -166,31 +165,6 @@ router.post('/deletePost/:postId', verifyJWT, async (req, res) => {
     }
 });
 
-
-
-// Comment on Post
-router.post('/Comment/:postId', verifyJWT, async (req, res) => {
-    try {
-        const { Content } = req.body;
-        if (!Content || Content.trim() === "") {
-            return res.status(400).json({ message: "Content cannot be empty" });
-        }
-
-        const post = await Post.findOne({ _id: req.params.postId });
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
-
-        const comment = await Comment.create({ Content, User: req.user._id, Post: req.params.postId });
-        await Post.findByIdAndUpdate(req.params.postId, { $push: { Comments: comment._id } }, { new: true });
-
-        return res.status(201).json({ message: "Comment added successfully", comment });
-    } catch (error) {
-        console.error("Error creating comment:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-});
-
 // 6.Get All Post
 router.get('/getAllPost', verifyJWT, async (req, res) => {
     try {
@@ -275,7 +249,7 @@ router.post('/unlikepost/:postId',verifyJWT,async(req,res)=>{
         if(!post.Likes.includes(req.user._id)){
             return res.status(400).json({ message: "post not yet liked." });
         }
-        post.Likes = post.Likes.filter(id => !id.equals(userId));
+        post.Likes = post.Likes.filter(id => !id.equals(req.user._id));
             await post.save();
     
             return res.status(200).json({ message: "post unliked successfully." });

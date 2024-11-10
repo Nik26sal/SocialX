@@ -15,16 +15,26 @@ function ViewPost() {
 
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:5555/user/getAllPost", { withCredentials: true });
-        const postsData = response.data.post
-          .filter(post => post.User._id !== userId) // Filter posts by userId
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort in descending order by date
+        const [allPostsResponse, likedPostsResponse] = await Promise.all([
+          axios.get("http://localhost:5555/user/getAllPost", { withCredentials: true }),
+          axios.get("http://localhost:5555/user/returnpost", { withCredentials: true }),
+        ]);
+
+        const likedPostIds = new Set(likedPostsResponse.data.likedPosts.map(post => post._id));
+        
+        const postsData = allPostsResponse.data.post
+          .filter(post => post.User._id !== userId)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map(post => ({
+            ...post,
+            isLiked: likedPostIds.has(post._id),
+          }));
 
         setPosts(postsData);
       } catch (error) {
         console.error('Failed to fetch posts:', error);
         if (error.response && error.response.status === 401) {
-          navigate('/sign_in_up'); // Redirect to login if unauthorized
+          navigate('/sign_in_up');
         }
       }
     };
@@ -56,13 +66,21 @@ function ViewPost() {
 
     try {
       await axios.post(endpoint, {}, { withCredentials: true });
+      
       const updatedPosts = [...posts];
-      updatedPosts[currentPostIndex].isLiked = !post.isLiked;
+      updatedPosts[currentPostIndex] = {
+        ...post,
+        isLiked: !post.isLiked,
+        Likes: post.isLiked 
+          ? post.Likes.filter(id => id !== userId) 
+          : [...post.Likes, userId] 
+      };
+
       setPosts(updatedPosts);
     } catch (error) {
       console.error(`Failed to ${post.isLiked ? "unlike" : "like"} post:`, error);
       if (error.response && error.response.status === 401) {
-        navigate('/sign_in_up'); // Redirect to login if unauthorized
+        navigate('/sign_in_up'); 
       }
     }
   };
@@ -116,7 +134,7 @@ function ViewPost() {
             onClick={handleLikeToggle}
             className={`w-full py-2 rounded-md transition duration-200 ${currentPost.isLiked ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
           >
-            {currentPost.isLiked ? 'Unlike' : 'Like'}: {currentPost.Likes?.length|| 0}
+            {currentPost.isLiked ? 'Unlike' : 'Like'}: {currentPost.Likes?.length || 0}
           </button>
         </footer>
         <h2>
