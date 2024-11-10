@@ -15,22 +15,29 @@ function ViewPost() {
 
     const fetchPosts = async () => {
       try {
-        const [allPostsResponse, likedPostsResponse] = await Promise.all([
-          axios.get("http://localhost:5555/user/getAllPost", { withCredentials: true }),
-          axios.get("http://localhost:5555/user/returnpost", { withCredentials: true }),
-        ]);
-
-        const likedPostIds = new Set(likedPostsResponse.data.likedPosts.map(post => post._id));
-        
+        const allPostsResponse = await axios.get("http://localhost:5555/user/getAllPost", { withCredentials: true });
+        const likedPostsResponse = await axios.get("http://localhost:5555/user/returnpost", { withCredentials: true });
+        console.log('All posts:', allPostsResponse.data);
+        console.log('Liked posts:', likedPostsResponse.data);
+        const likedPostIds = new Set();
+        if (likedPostsResponse.data.likedPosts && likedPostsResponse.data.likedPosts.length > 0) {
+          likedPostsResponse.data.likedPosts.forEach(post => {
+            likedPostIds.add(post._id);
+          });
+        }
         const postsData = allPostsResponse.data.post
-          .filter(post => post.User._id !== userId)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .map(post => ({
+          .filter(post => post.User._id !== userId) 
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        if (likedPostIds.size > 0) {
+          const updatedPostsData = postsData.map(post => ({
             ...post,
-            isLiked: likedPostIds.has(post._id),
+            isLiked: likedPostIds.has(post._id), 
           }));
-
-        setPosts(postsData);
+          setPosts(updatedPostsData);
+        } else {
+          setPosts(postsData);
+        }
+        
       } catch (error) {
         console.error('Failed to fetch posts:', error);
         if (error.response && error.response.status === 401) {
@@ -67,13 +74,14 @@ function ViewPost() {
     try {
       await axios.post(endpoint, {}, { withCredentials: true });
       
+      // Update the post's like status locally
       const updatedPosts = [...posts];
       updatedPosts[currentPostIndex] = {
         ...post,
         isLiked: !post.isLiked,
-        Likes: post.isLiked 
-          ? post.Likes.filter(id => id !== userId) 
-          : [...post.Likes, userId] 
+        Likes: post.isLiked
+          ? post.Likes.filter(id => id !== userId) // Remove user ID from likes if unliking
+          : [...post.Likes, userId] // Add user ID to likes if liking
       };
 
       setPosts(updatedPosts);
@@ -110,7 +118,7 @@ function ViewPost() {
   }
 
   const currentPost = posts[currentPostIndex];
-  const postDate = new Date(currentPost.createdAt); 
+  const postDate = new Date(currentPost.createdAt);
 
   return (
     <div className='h-screen w-screen flex flex-col items-center justify-center bg-gray-100'>
@@ -124,7 +132,7 @@ function ViewPost() {
 
       <div className='w-96 bg-white rounded-lg shadow-lg p-6 flex flex-col items-center'>
         <header className='w-full border-b pb-3 mb-4 text-center'>
-          <h2 className='text-xl font-bold text-gray-800'>UserName: {currentPost.User.Name}</h2> 
+          <h2 className='text-xl font-bold text-gray-800'>UserName: {currentPost.User.Name}</h2>
         </header>
         <main className='flex-1 text-gray-700 mb-6 text-center'>
           <p>{currentPost.Content}</p>

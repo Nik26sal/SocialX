@@ -168,7 +168,9 @@ router.post('/deletePost/:postId', verifyJWT, async (req, res) => {
 // 6.Get All Post
 router.get('/getAllPost', verifyJWT, async (req, res) => {
     try {
+        console.log("get your all post by me")
         const posts = await Post.find().populate('User','Name');
+        console.log(posts);
         return res.status(202).json({ post: posts });
     } catch (error) {
         return res.status(501).json({message:"something went error"})
@@ -214,13 +216,11 @@ router.get('/likes/:postId', verifyJWT, async (req, res) => {
     }
 });
 
-//9. Return Posts Liked by User
+// 9. Return Posts Liked by User
 router.get('/returnpost', verifyJWT, async (req, res) => {
     try {
+        console.log("Fetching liked posts for user:", req.user._id);
         const likedPosts = await Post.find({ Likes: req.user._id });
-        if (likedPosts.length === 0) {
-            return res.status(404).json({ message: "No liked posts found for this user." });
-        }
         return res.status(200).json({ likedPosts });
     } catch (error) {
         console.error("Error fetching liked posts:", error);
@@ -228,10 +228,11 @@ router.get('/returnpost', verifyJWT, async (req, res) => {
     }
 });
 
+
 // 10. Get All Posts of Logged-In User
 router.get('/userPosts', verifyJWT, async (req, res) => {
     try {
-        const userPosts = await Post.find({ User: req.user._id }).populate('Comments Likes');
+        const userPosts = await Post.find({ User: req.user._id }).populate('Likes');
         return res.status(200).json({ message: "User's posts retrieved successfully", userPosts });
     } catch (error) {
         console.error("Error fetching user's posts:", error);
