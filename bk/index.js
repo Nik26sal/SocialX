@@ -41,7 +41,9 @@ app.use((err, req, res, next) => {
         });
         
         console.log("Server is connected with the database successfully");
-
+        app.on('error', (error) => {
+            console.log(`Server error:`, error);
+        });
         app.listen(port, () => {
             console.log(`Your server is running on port: ${port}`);
         });
