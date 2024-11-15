@@ -31,9 +31,6 @@ function Sign_in_aur_up() {
         });
   
         alert(`Welcome ${response.data.user.Name}`);
-        console.log(`AccessToken : ${response.data.accessToken}`);
-        console.log(response.data.refreshToken);
-
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
   

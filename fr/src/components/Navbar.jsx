@@ -20,7 +20,6 @@ function Navbar() {
         navigate('/sign_in_up');
       }
     } catch (error) {
-      console.error("Logout failed:", error.response?.data?.message || error.message);
       alert(error.response?.data?.message || "Failed to log out. Please try again.");
     }
   };
