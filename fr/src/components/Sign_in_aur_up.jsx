@@ -14,7 +14,8 @@ const carouselItems = [
 function Sign_in_aur_up() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLogin, setIsLogin] = useState(true);
-  const [input, setInput] = useState({ Name: '', Email: '', Password: '' });
+  const [loading,setLoading] = useState(false);
+  const [input, setInput] = useState({ Name: '', Email: '', Password: '', avatar: null });
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -23,42 +24,37 @@ function Sign_in_aur_up() {
     try {
       let response;
       if (isLogin) {
-        response = await axios.post('http://localhost:5555/user/login', { 
-          Email: input.Email, 
-          Password: input.Password 
-        }, { 
-          withCredentials: true 
+        setLoading(true);
+        response = await axios.post('http://localhost:5555/user/login', {
+          Email: input.Email,
+          Password: input.Password
+        }, {
+          withCredentials: true
         });
-  
+
         alert(`Welcome ${response.data.user.Name}`);
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
-  
         dispatch(setAuth({
           user: response.data.user,
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken,
         }));
+        setLoading(false)
         navigate('/');
       } else {
-        response = await axios.post('http://localhost:5555/user/register', { 
-          Name: input.Name, 
-          Email: input.Email, 
-          Password: input.Password 
-        });
-  
-        alert(response?.data?.message || "User registered successfully.");
-
-        if (response.data.accessToken && response.data.refreshToken) {
-          localStorage.setItem('accessToken', response.data.accessToken);
-          localStorage.setItem('refreshToken', response.data.refreshToken);
-          dispatch(setAuth({
-            user: response.data.user,
-            accessToken: response.data.accessToken,
-            refreshToken: response.data.refreshToken,
-          }));
+        setLoading(true);
+        const formData = new FormData();
+        formData.append('Name', input.Name);
+        formData.append('Email', input.Email);
+        formData.append('Password', input.Password);
+        if (input.avatar) {
+          formData.append('avatar', input.avatar);
         }
-  
+      
+        response = await axios.post('http://localhost:5555/user/register', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      
+        console.log("response", response);
+        alert(response?.data?.message || "User registered successfully.");
+        setLoading((prev) => !prev);
         setIsLogin((prev) => !prev);
       }
     } catch (error) {
@@ -66,10 +62,10 @@ function Sign_in_aur_up() {
       alert(error.response?.data?.message || "An error occurred");
     }
   };
-  
+
   const toggleForm = () => {
     setIsLogin(!isLogin);
-    setInput({ Name: '', Email: '', Password: '' });
+    setInput({ Name: '', Email: '', Password: '', avatar: null });
   };
 
   const nextSlide = () => setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselItems.length);
@@ -117,12 +113,28 @@ function Sign_in_aur_up() {
               </div>
             )}
 
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-bold mb-1" htmlFor="avatar">
+                  avatar
+                </label>
+                <input
+                  type="file"
+                  id="avatar"
+                  onChange={(e) => setInput({ ...input, avatar: e.target.files[0] })}
+                  className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:border-blue-500"
+                  placeholder="Select your avatar"
+                  required
+                />
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-bold mb-1" htmlFor="Email">
                 Email
               </label>
               <input
-                type="email" 
+                type="email"
                 id="Email"
                 value={input.Email}
                 onChange={(e) => setInput({ ...input, Email: e.target.value })}
@@ -152,7 +164,7 @@ function Sign_in_aur_up() {
                 type="submit"
                 className="w-full py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition duration-200"
               >
-                {isLogin ? 'Login' : 'Register'}
+                {isLogin ? (loading ? 'Login.............' : 'Login') : (loading ? 'Register.............' : 'Register')}
               </button>
             </div>
 

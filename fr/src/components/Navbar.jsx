@@ -9,10 +9,10 @@ function Navbar() {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const handleLogout = async () => {
     try {
-      const response = await axios.post('http://localhost:5555/user/logout', {}, {
+      const response = await axios.get('http://localhost:5555/user/logout', {}, {
         withCredentials: true 
       });
-      
+      console.log(response)
       if (response.status === 200) {
         dispatch(clearAuth());
         localStorage.clear();
