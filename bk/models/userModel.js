@@ -23,6 +23,13 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
+    verificationCode:{
+        type:Number
+    },
+    isVerified:{
+        type:Boolean,
+        default:false
+    },
     refreshToken: {
         type: String
     },

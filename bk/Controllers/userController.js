@@ -2,6 +2,8 @@ import { User } from "../models/userModel.js";
 import { Post } from "../models/postModel.js";
 import { generateToken } from "../utilities/generateToken.js";
 import { uploadCloudinary } from "../utilities/cloudinary.js";
+import { customAlphabet } from 'nanoid';
+import { sendVerificationEamil,senWelcomeEmail } from "../email/email.js";
 
 const registerUser = async (req, res) => {
     try {
@@ -14,7 +16,6 @@ const registerUser = async (req, res) => {
             return res.status(401).json({ message: "This user is already existed........." });
         }
         let avatar = null;
-        console.log(req.files);
         if (req.files?.avatar && Array.isArray(req.files.avatar) && req.files.avatar[0]) {
             try {
                 const avatarUploadResult = await uploadCloudinary(req.files.avatar[0].path);
@@ -27,8 +28,13 @@ const registerUser = async (req, res) => {
                 return res.status(500).json({ message: "Error uploading avatar." });
             }
         }
-        const user = await User.create({ Name:Name, Email:Email, Password:Password, avatar:avatar });
+        const verificationCode = customAlphabet('1234567890', 6);
+        const user = await User.create({ Name:Name, Email:Email, Password:Password, avatar:avatar,verificationCode:verificationCode });
         const createdUser = await User.findById(user._id).select("-Password -refreshToken");
+        if(!createdUser){
+            return res.status(405).json({message:"Something went wrong during the creating User"})
+        }
+        await sendVerificationEamil(user.email,verificationToken)
 
         return res.status(201).json({ message: "User registered successfully.", user: createdUser });
     } catch (error) {
@@ -36,6 +42,29 @@ const registerUser = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
+router.post('/emailverify',async(req,res)=>{
+    try {
+        const {code}=req.body 
+        const user= await User.findOne({
+            verificationCode:code,
+        })
+        if (!user) {
+            return res.status(400).json({message:"Inavlid or Expired Code"})
+                
+            }
+          
+     user.isVerified=true;
+     await user.save()
+     await senWelcomeEmail(user.Email,user.Name)
+     return res.status(200).json({success:true,message:"Email Verifed Successfully"})
+           
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({success:false,message:"internal server error"})
+    }
+}
+)
 
 const loginUser = async (req, res) => {
     try {
