@@ -2,7 +2,6 @@ import { User } from "../models/userModel.js";
 import { Post } from "../models/postModel.js";
 import { generateToken } from "../utilities/generateToken.js";
 import { uploadCloudinary } from "../utilities/cloudinary.js";
-import { customAlphabet } from 'nanoid';
 import { sendVerificationEamil,senWelcomeEmail } from "../email/email.js";
 
 const registerUser = async (req, res) => {
@@ -13,8 +12,12 @@ const registerUser = async (req, res) => {
         }
         const exsitedUser = await User.findOne({ Email });
         if (exsitedUser) {
-            return res.status(401).json({ message: "This user is already existed........." });
-        }
+            if (!exsitedUser.isVerified) {
+                await User.findByIdAndDelete(exsitedUser._id);
+            } else {
+                return res.status(401).json({ message: "This user already exists." });
+            }
+        }        
         let avatar = null;
         if (req.files?.avatar && Array.isArray(req.files.avatar) && req.files.avatar[0]) {
             try {
@@ -28,13 +31,13 @@ const registerUser = async (req, res) => {
                 return res.status(500).json({ message: "Error uploading avatar." });
             }
         }
-        const verificationCode = customAlphabet('1234567890', 6);
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
         const user = await User.create({ Name:Name, Email:Email, Password:Password, avatar:avatar,verificationCode:verificationCode });
         const createdUser = await User.findById(user._id).select("-Password -refreshToken");
         if(!createdUser){
             return res.status(405).json({message:"Something went wrong during the creating User"})
         }
-        await sendVerificationEamil(user.email,verificationToken)
+        await sendVerificationEamil(user.Email,verificationCode)
 
         return res.status(201).json({ message: "User registered successfully.", user: createdUser });
     } catch (error) {
@@ -43,15 +46,14 @@ const registerUser = async (req, res) => {
     }
 }
 
-router.post('/emailverify',async(req,res)=>{
+const verifyEmail = ('/emailverify',async(req,res)=>{
+    const {code}=req.body 
     try {
-        const {code}=req.body 
         const user= await User.findOne({
             verificationCode:code,
         })
         if (!user) {
             return res.status(400).json({message:"Inavlid or Expired Code"})
-                
             }
           
      user.isVerified=true;
@@ -135,4 +137,4 @@ const getUser = async (req, res) => {
 };
 
 
-export {registerUser,loginUser,logoutUser,deleteUser,getUser}
+export {registerUser,loginUser,logoutUser,deleteUser,getUser,verifyEmail}

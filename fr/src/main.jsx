@@ -9,6 +9,7 @@ import ViewPost from './components/ViewPost.jsx';
 import UploadPost from './components/UploadPost.jsx';
 import Sign_in_aur_up from './components/Sign_in_aur_up.jsx';
 import './index.css';
+import OTP from './components/OTP.jsx';
 
 const routes = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ const routes = createBrowserRouter([
       {
         path: '/uploadPost',
         element: <UploadPost />
+      },
+      {
+        path:'/verifyOTP',
+        element:<OTP/>
       }
     ]
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setAuth } from '../features/authSlice';
 import axios from 'axios';
@@ -13,8 +13,9 @@ const carouselItems = [
 
 function Sign_in_aur_up() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading,setLoading] = useState(false);
+  const location = useLocation();
+  const [isLogin, setIsLogin] = useState(location.state?.isLogin || true);
+  const [loading, setLoading] = useState(location.state?.loading || false);
   const [input, setInput] = useState({ Name: '', Email: '', Password: '', avatar: null });
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,11 +52,8 @@ function Sign_in_aur_up() {
         response = await axios.post('http://localhost:5555/user/register', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-      
         console.log("response", response);
-        alert(response?.data?.message || "User registered successfully.");
-        setLoading((prev) => !prev);
-        setIsLogin((prev) => !prev);
+        navigate('/verifyOTP')
       }
     } catch (error) {
       console.error("Authentication error:", error.response?.data?.message || error.message);
