@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import axios, { all } from 'axios';
+import { useSelector ,useDispatch} from 'react-redux';
+import { post } from '../features/postSlice';
+import axios from 'axios';
 import { useNavigate } from 'react-router';
 
 function ViewPost() {
   const [posts, setPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const userId = user?._id;
 
@@ -16,8 +18,10 @@ function ViewPost() {
     const fetchPosts = async () => {
       try {
         const allPostsResponse = await axios.get("http://localhost:5555/post/getAllPost", { withCredentials: true });
+        dispatch(post({
+          post:allPostsResponse.data.post
+        }))
         const likedPostsResponse = await axios.get("http://localhost:5555/like/returnpost", { withCredentials: true });
-        console.log(allPostsResponse)
         const likedPostIds = new Set(likedPostsResponse.data.likedPosts?.map(post => post._id) || []);
         
         const postsData = allPostsResponse.data.post
