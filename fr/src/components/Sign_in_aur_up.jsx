@@ -49,9 +49,15 @@ function Sign_in_aur_up() {
           formData.append('avatar', input.avatar);
         }
       
-        response = await axios.post('http://localhost:5555/user/register', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const response = await axios.post(
+          'http://localhost:5555/user/register',
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            withCredentials: true,
+          }
+        );
+        
         console.log("response", response);
         navigate('/verifyOTP')
       }

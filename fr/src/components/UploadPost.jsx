@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { addPost } from '../features/postSlice';
 import axios from 'axios';
 
 function UploadPost() {
   const [content, setContent] = useState('');
-  const [file, setFile] = useState(null);
+  const [mediaURL, setMediaURL] = useState(null);
   const [description, setDescription] = useState('');
-  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
 
@@ -17,30 +15,32 @@ function UploadPost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    if (file) {
-      formData.append('media', file);
+  
+    if (mediaURL) {
+      formData.append('mediaURL', mediaURL); 
     } else {
       formData.append('content', content);
     }
+  
     formData.append('description', description);
-
+  
     try {
+      console.log(formData);
       const response = await axios.post(
-        'http://localhost:5555/user/uploadPost',
+        'http://localhost:5555/post/uploadPost',
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
+          withCredentials: true,
         }
       );
-
+  
       if (response.status === 201) {
-        dispatch(addPost(response.data.post));
         alert('Post uploaded successfully!');
         setContent('');
-        setFile(null);
+        setMediaURL(null);
         setDescription('');
       } else {
         throw new Error('Failed to upload post');
@@ -50,7 +50,7 @@ function UploadPost() {
       alert('Error uploading post');
     }
   };
-
+  
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-white text-black">
@@ -77,11 +77,11 @@ function UploadPost() {
             className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:border-purple-500 bg-white text-black"
             rows="4"
             placeholder="Write something..."
-            disabled={file !== null}
+            disabled={mediaURL !== null}
           />
           <input
             type="file"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={(e) => setMediaURL(e.target.files[0])}
             className="mt-2 w-full text-sm text-gray-300"
             disabled={content.trim() !== ''}
           />

@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 function OTP() {
   const [otp, setOtp] = useState(new Array(6).fill(""));
-  const [ind, setInd] = useState(0);
   const navigate = useNavigate();
 
   const handleChange = (e, index) => {
