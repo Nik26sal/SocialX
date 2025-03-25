@@ -39,7 +39,6 @@ const totalLikes = async (req, res) => {
 
 const likedUserPost = async (req, res) => {
     try {
-        console.log("Fetching liked posts for user:", req.user._id);
         const likedPosts = await Post.find({ Likes: req.user._id });
         return res.status(200).json({ likedPosts });
     } catch (error) {

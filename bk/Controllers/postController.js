@@ -58,7 +58,6 @@ const deletePost = async (req, res) => {
 const getAll = async (req, res) => {
     try {
         const posts = await Post.find().populate('User','Name avatar');
-        console.log(posts);
         return res.status(202).json({ post: posts });
     } catch (error) {
         return res.status(501).json({message:"something went error"})

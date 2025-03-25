@@ -87,7 +87,7 @@ const loginUser = async (req, res) => {
         return res.status(200)
             .cookie("accessToken", accessToken)
             .cookie("refreshToken", refreshToken)
-            .json({ message: "User logged in successfully.", user ,accessToken,refreshToken});// change is made in sending the refreshToken and the accessToken due to confidentiality
+            .json({ message: "User logged in successfully.", user ,accessToken,refreshToken});
     } catch (error) {
         console.error("Login Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
