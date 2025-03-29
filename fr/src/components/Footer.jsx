@@ -9,8 +9,7 @@ function Footer() {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row h-screen">
-      {/* Sidebar for larger screens */}
+    <div className="flex flex-col sm:flex-row h-auto">
       <div
         className={`${
           open ? "w-64" : "w-20"

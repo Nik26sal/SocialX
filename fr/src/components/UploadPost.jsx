@@ -42,6 +42,7 @@ function UploadPost() {
         setContent('');
         setMediaURL(null);
         setDescription('');
+        navigate('/')
       } else {
         throw new Error('Failed to upload post');
       }
@@ -53,7 +54,7 @@ function UploadPost() {
   
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-white text-black">
+      <div className="flex flex-col items-center justify-center h-screen w-full bg-white text-black">
         <h1 className="text-5xl font-extrabold mb-6 animate-pulse">🚀 Welcome</h1>
         <div className="bg-gray-800 rounded-lg shadow-xl p-6 w-96 text-center border border-purple-500">
           <h2 className="text-2xl font-semibold">No User Registered Yet...</h2>

@@ -6,7 +6,7 @@ import { upload } from "../utilities/multer.js";
 const router = Router();
 
 router.post("/uploadPost", verifyJWT,upload.fields([{name:'mediaURL',maxCount:1}]),uploadPost);
-router.post('/deletePost/:postId', verifyJWT, deletePost);
+router.delete('/deletePost/:postId', verifyJWT, deletePost);
 router.get('/getAllPost', verifyJWT, getAll);
 router.get('/userPosts', verifyJWT,usersPost);
 

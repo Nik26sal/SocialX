@@ -5,6 +5,7 @@ const commentRoute = async (req, res) => {
         const currentUser = req.user;
         const { postId } = req.params;
         const { content } = req.body;
+        console.log(content)
         const post = await Post.findOne({ _id: postId });
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
@@ -53,6 +54,7 @@ const removeComment = async (req, res) => {
 const returnAllComment = async (req, res) => {
     try {
         const { postId } = req.params;
+        console.log(postId)
         const post = await Post.findOne({ _id: postId });
         if (!post) {
             return res.status(404).json({ message: "Post not found" });

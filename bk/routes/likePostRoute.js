@@ -6,7 +6,7 @@ const router = Router();
 router.patch('/likesOnPost/:postId', verifyJWT, likePost);
 router.get('/likes/:postId', verifyJWT, totalLikes);
 router.get('/returnpost', verifyJWT, likedUserPost);
-router.post('/unlikepost/:postId',verifyJWT,unlikePost)
+router.patch('/unlikepost/:postId',verifyJWT,unlikePost)
 
 export default router;
 

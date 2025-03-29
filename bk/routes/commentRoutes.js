@@ -6,6 +6,6 @@ const router = Router();
 
 router.post('/commentOnPost/:postId',verifyJWT,commentRoute)
 router.delete('/deleteComment/:postId/:commentId',verifyJWT,removeComment)
-router.get('/returnAllComment',verifyJWT,returnAllComment)
+router.get('/returnAllComment/:postId',verifyJWT,returnAllComment)
 
 export default router;
