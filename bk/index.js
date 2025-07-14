@@ -1,5 +1,8 @@
-import express from "express";
 import dotenv from 'dotenv';
+dotenv.config({
+    path: './.env'
+});
+import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import database from "./Database/db.js";
@@ -9,9 +12,6 @@ import likePostRoute from './routes/likePostRoute.js'
 import commentRoutes from './routes/commentRoutes.js'
 
 
-dotenv.config({
-    path: './.env'
-});
 
 database();
 
@@ -21,6 +21,7 @@ const app = express();
 
 const corsOptions = {
     origin: process.env.CORS,
+    method:['GET','POST','PUT','PATCH','DELETE'],
     credentials: true,
 };
 
