@@ -1,15 +1,25 @@
+// ViewPost.jsx
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {post} from '../features/postSlice';
+import { post } from '../features/postSlice';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { addComment } from '../features/commentSlice';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ArrowUp,
+  ArrowDown,
+  ThumbsUp,
+  User,
+  MessageCircle,
+  Send,
+} from 'lucide-react';
 
 function ViewPost() {
   const [posts, setPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -20,16 +30,24 @@ function ViewPost() {
 
     const fetchPosts = async () => {
       try {
-        const allPostsResponse = await axios.get("http://localhost:5555/post/getAllPost", { withCredentials: true });
-        console.log(allPostsResponse)
+        const allPostsResponse = await axios.get(
+          'http://localhost:5555/post/getAllPost',
+          { withCredentials: true }
+        );
         dispatch(post({ post: allPostsResponse.data.post }));
-        const likedPostsResponse = await axios.get("http://localhost:5555/like/returnpost", { withCredentials: true });
-        const likedPostIds = new Set(likedPostsResponse.data.likedPosts?.map(post => post._id) || []);
+
+        const likedPostsResponse = await axios.get(
+          'http://localhost:5555/like/returnpost',
+          { withCredentials: true }
+        );
+        const likedPostIds = new Set(
+          likedPostsResponse.data.likedPosts?.map((post) => post._id) || []
+        );
 
         const postsData = allPostsResponse.data.post
-          .filter(post => post.User._id !== userId)
+          .filter((post) => post.User._id !== userId)
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .map(post => ({ ...post, isLiked: likedPostIds.has(post._id) }));
+          .map((post) => ({ ...post, isLiked: likedPostIds.has(post._id) }));
 
         setPosts(postsData);
       } catch (error) {
@@ -46,13 +64,13 @@ function ViewPost() {
 
     const fetchComments = async () => {
       try {
-        const response = await axios.get(`http://localhost:5555/comment/returnAllComment/${posts[currentPostIndex]._id}`, {
-          withCredentials: true,
-        });
-        console.log(response.data)
+        const response = await axios.get(
+          `http://localhost:5555/comment/returnAllComment/${posts[currentPostIndex]._id}`,
+          { withCredentials: true }
+        );
         setComments(response.data.comments);
       } catch (error) {
-        console.error("Failed to fetch comments:", error);
+        console.error('Failed to fetch comments:', error);
       }
     };
 
@@ -62,11 +80,13 @@ function ViewPost() {
   const handleNavigation = () => navigate('/sign_in_up');
 
   const handleNextPost = () => {
-    if (currentPostIndex < posts.length - 1) setCurrentPostIndex(currentPostIndex + 1);
+    if (currentPostIndex < posts.length - 1)
+      setCurrentPostIndex(currentPostIndex + 1);
   };
 
   const handlePreviousPost = () => {
-    if (currentPostIndex > 0) setCurrentPostIndex(currentPostIndex - 1);
+    if (currentPostIndex > 0)
+      setCurrentPostIndex(currentPostIndex - 1);
   };
 
   const handleLikeToggle = async () => {
@@ -79,19 +99,21 @@ function ViewPost() {
     try {
       await axios.patch(endpoint, {}, { withCredentials: true });
 
-      setPosts(posts.map((p, index) =>
-        index === currentPostIndex
-          ? {
-            ...p,
-            isLiked: !p.isLiked,
-            Likes: p.isLiked
-              ? p.Likes.filter(id => id !== userId)
-              : [...p.Likes, userId]
-          }
-          : p
-      ));
+      setPosts((prevPosts) =>
+        prevPosts.map((p, index) =>
+          index === currentPostIndex
+            ? {
+                ...p,
+                isLiked: !p.isLiked,
+                Likes: p.isLiked
+                  ? p.Likes.filter((id) => id !== userId)
+                  : [...p.Likes, userId],
+              }
+            : p
+        )
+      );
     } catch (error) {
-      console.error(`Failed to ${posts[currentPostIndex]?.isLiked ? "unlike" : "like"} post:`, error);
+      console.error(`Failed to toggle like:`, error);
       if (error.response?.status === 401) navigate('/sign_in_up');
     }
   };
@@ -105,13 +127,13 @@ function ViewPost() {
         { content: newComment },
         { withCredentials: true }
       );
-
       const addedComment = response.data.comment;
       setComments([...comments, addedComment]);
       dispatch(addComment({ comment: addedComment }));
-      setNewComment("");
+      setNewComment('');
+      window.location.reload();
     } catch (error) {
-      console.error("Failed to add comment:", error);
+      console.error('Failed to add comment:', error);
     }
   };
 
@@ -121,7 +143,12 @@ function ViewPost() {
         <h1 className="text-2xl font-bold mb-4">Profile</h1>
         <div className="bg-white rounded-lg shadow-lg p-6 w-80">
           <h2 className="text-xl font-semibold">No User Registered Yet...</h2>
-          <button onClick={handleNavigation} className="text-blue-500 hover:underline mt-4">Register or Login</button>
+          <button
+            onClick={handleNavigation}
+            className="text-blue-500 hover:underline mt-4"
+          >
+            Register or Login
+          </button>
         </div>
       </div>
     );
@@ -133,48 +160,126 @@ function ViewPost() {
   const postDate = new Date(currentPost.createdAt);
 
   return (
-    <div className='h-screen w-screen flex flex-col items-center justify-center bg-gray-100'>
-      <button onClick={handlePreviousPost} disabled={currentPostIndex === 0} className='p-4 mb-2 rounded-full bg-blue-500 text-white'>↑</button>
-
-      <div className='w-96 bg-white rounded-lg shadow-lg p-4 flex flex-col items-center'>
-        <h2 className='text-xl font-bold text-gray-800'>User: {currentPost.User.Name}</h2>
-        {currentPost.Type === 'text' && <p>{currentPost.Content}</p>}
-        {currentPost.Type === 'image' && <img src={currentPost.mediaURL} alt='Post' className='max-w-full rounded-lg' />}
-        {currentPost.Type === 'video' && <video src={currentPost.mediaURL} controls className='max-w-full rounded-lg' />}
-        <p className='text-gray-600'>{currentPost.description}</p>
-
-        <button onClick={handleLikeToggle} className={`w-full py-2 rounded-md mt-4 ${currentPost.isLiked ? 'bg-red-600' : 'bg-blue-600'} text-white`}>
-          {currentPost.isLiked ? 'Unlike' : 'Like'} ({currentPost.Likes?.length || 0})
+    <div className="min-h-screen w-full flex flex-col items-center bg-gradient-to-br from-slate-100 to-slate-200 p-4">
+      {/* Navigation Buttons */}
+      <div className="flex gap-4 mb-4">
+        <button
+          onClick={handlePreviousPost}
+          disabled={currentPostIndex === 0}
+          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-md"
+        >
+          <ArrowUp size={18} />
         </button>
-        <p>Date: {postDate.toLocaleDateString()} Time: {postDate.toLocaleTimeString()}</p>
-        <div className="border-t border-gray-300 mt-4 pt-4 w-full">
-          <h3 className="text-lg font-semibold">Comments</h3>
-          <div className="max-h-40 overflow-y-auto mt-2">
-            {comments.length > 0 ? (
-              comments.map((comment, index) => (
-                <div key={index} className="p-2 border-b border-gray-200">
-                  <p className="text-sm flex items-center">
-                    <img
-                      src={comment?.user?.avatar || "https://via.placeholder.com/40"}
-                      alt="User Avatar"
-                      className="w-8 h-8 rounded-full inline-block mr-2 object-cover"
-                    />
-                    <strong>{comment?.user?.Name || "Anonymous"}:</strong> {comment?.content || "No content"}
-                  </p>
-
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm">No comments yet.</p>
-            )}
-          </div>
-          <form onSubmit={handleCommentSubmit} className="mt-2 flex flex-col">
-            <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} className="p-2 border rounded-md w-full" placeholder="Write a comment..."></textarea>
-            <button type="submit" className="mt-2 bg-blue-500 text-white py-1 rounded-md">Submit</button>
-          </form>
-        </div>
+        <button
+          onClick={handleNextPost}
+          disabled={currentPostIndex === posts.length - 1}
+          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-md"
+        >
+          <ArrowDown size={18} />
+        </button>
       </div>
-      <button onClick={handleNextPost} disabled={currentPostIndex === posts.length - 1} className='p-4 mt-4 rounded-full bg-blue-500 text-white'>↓</button>
+
+      {/* Post Card (Instagram Style) */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentPost._id}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-sm bg-white rounded-xl shadow-md overflow-hidden"
+        >
+          <div className="p-3 flex items-center gap-2 border-b">
+            <User className="w-4 h-4 text-gray-700" />
+            <h2 className="text-sm font-medium text-gray-800">
+              {currentPost.User.Name}
+            </h2>
+          </div>
+
+          {currentPost.Type === 'text' && (
+            <p className="p-4 text-sm text-gray-800">{currentPost.Content}</p>
+          )}
+
+          {currentPost.Type === 'image' && (
+            <img
+              src={currentPost.mediaURL}
+              alt="Post"
+              className="w-full h-72 object-cover"
+            />
+          )}
+
+          {currentPost.Type === 'video' && (
+            <video
+              src={currentPost.mediaURL}
+              controls
+              className="w-full h-72 object-cover"
+            />
+          )}
+
+          <div className="p-3">
+            <p className="text-xs text-gray-600 mb-2">{currentPost.description}</p>
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleLikeToggle}
+              className={`w-full py-1.5 text-sm rounded-md flex items-center justify-center gap-2 ${
+                currentPost.isLiked ? 'bg-red-500' : 'bg-blue-500'
+              } text-white`}
+            >
+              <ThumbsUp size={16} />
+              {currentPost.isLiked ? 'Unlike' : 'Like'} ({currentPost.Likes?.length || 0})
+            </motion.button>
+
+            <p className="text-[11px] text-center text-gray-400 mt-2">
+              {postDate.toLocaleDateString()} at {postDate.toLocaleTimeString()}
+            </p>
+          </div>
+
+          {/* Comments Section */}
+          <div className="px-3 pb-4 space-y-2">
+            <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
+              <MessageCircle size={16} />
+              Comments
+            </div>
+
+            <div className="max-h-28 overflow-y-auto text-sm text-gray-700 space-y-1">
+              {comments.length > 0 ? (
+                comments.map((comment, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm">
+                    <img
+                      src={comment?.user?.avatar || 'https://via.placeholder.com/30'}
+                      alt="Avatar"
+                      className="w-6 h-6 rounded-full object-cover mt-0.5"
+                    />
+                    <div>
+                      <strong>{comment?.user?.Name || 'Anonymous'}:</strong>{' '}
+                      {comment?.content || ''}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm">No comments yet.</p>
+              )}
+            </div>
+
+            <form onSubmit={handleCommentSubmit} className="flex items-center gap-2 pt-2">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="flex-1 p-1.5 text-sm border rounded-md resize-none"
+                rows={1}
+                placeholder="Write a comment..."
+              ></textarea>
+              <button
+                type="submit"
+                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                <Send size={16} />
+              </button>
+            </form>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
