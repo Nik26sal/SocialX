@@ -1,4 +1,3 @@
-// ViewPost.jsx
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { post } from '../features/postSlice';
@@ -161,7 +160,6 @@ function ViewPost() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-gradient-to-br from-slate-100 to-slate-200 p-4">
-      {/* Navigation Buttons */}
       <div className="flex gap-4 mb-4">
         <button
           onClick={handlePreviousPost}
@@ -179,7 +177,6 @@ function ViewPost() {
         </button>
       </div>
 
-      {/* Post Card (Instagram Style) */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPost._id}
@@ -235,7 +232,6 @@ function ViewPost() {
             </p>
           </div>
 
-          {/* Comments Section */}
           <div className="px-3 pb-4 space-y-2">
             <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
               <MessageCircle size={16} />
@@ -247,7 +243,7 @@ function ViewPost() {
                 comments.map((comment, index) => (
                   <div key={index} className="flex items-start gap-2 text-sm">
                     <img
-                      src={comment?.user?.avatar || 'https://via.placeholder.com/30'}
+                      src={comment?.user?.avatar}
                       alt="Avatar"
                       className="w-6 h-6 rounded-full object-cover mt-0.5"
                     />

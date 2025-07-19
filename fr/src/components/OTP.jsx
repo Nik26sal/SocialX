@@ -7,6 +7,7 @@ function OTP() {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [popup, setPopup] = useState({ show: false, message: "", status: "success" });
   const navigate = useNavigate();
+  const [loading,setLoading] = useState(false);
 
   const handleChange = (e, index) => {
     const value = e.target.value;
@@ -40,6 +41,7 @@ function OTP() {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       const code = otp.join("");
       const response = await axios.post("http://localhost:5555/user/verifyEmail", {
@@ -53,6 +55,7 @@ function OTP() {
     } catch (err) {
       showPopup("Invalid or expired code. Try again.", "error");
     }
+    setLoading(false);
   };
 
   const showPopup = (message, status) => {
@@ -69,7 +72,6 @@ function OTP() {
       onKeyDown={handleKeyDownforsubmit}
       className="relative w-screen h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-800 to-indigo-900"
     >
-      {/* OTP Card */}
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -78,8 +80,6 @@ function OTP() {
       >
         <h1 className="text-3xl font-bold mb-2">Verify Email</h1>
         <p className="text-sm text-gray-200 mb-6">Enter the 6-digit OTP sent to your email.</p>
-
-        {/* OTP Inputs */}
         <div className="flex justify-center space-x-2 mb-6">
           {otp.map((digit, index) => (
             <input
@@ -95,17 +95,15 @@ function OTP() {
           ))}
         </div>
 
-        {/* Submit Button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleSubmit}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg shadow-lg transition"
         >
-          Submit
+          {loading? 'Submit.....':'Submit'}
         </motion.button>
       </motion.div>
 
-      {/* Modal Popup */}
       <AnimatePresence>
         {popup.show && (
           <motion.div

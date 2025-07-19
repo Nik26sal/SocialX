@@ -36,7 +36,6 @@ function Navbar() {
 
   return (
     <div className="relative">
-      {/* Navbar */}
       <nav className="backdrop-blur-md bg-white/10 border-b border-white/20 shadow-md px-6 py-4 flex justify-between items-center text-white">
         <Link to="/" className="text-2xl font-bold tracking-wide flex items-center gap-2">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">
@@ -47,7 +46,6 @@ function Navbar() {
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
-              {/* Avatar with hover effect */}
               <div className="relative group">
                 <img
                   src={user.avatar || "/default-avatar.png"}
@@ -88,8 +86,6 @@ function Navbar() {
           )}
         </div>
       </nav>
-
-      {/* Popup */}
       <AnimatePresence>
         {popup.show && (
           <motion.div

@@ -15,13 +15,11 @@ function Footer() {
 
   return (
     <div className="flex flex-col sm:flex-row h-auto">
-      {/* Desktop Sidebar */}
       <div
         className={`${
           open ? "w-64" : "w-20"
         } hidden sm:flex flex-col h-screen bg-gray-900/80 backdrop-blur-md text-white transition-all duration-300 shadow-lg`}
       >
-        {/* Toggle Button */}
         <button onClick={toggleSidebar} className="p-4 hover:bg-gray-800">
           <div className="relative w-6 h-6">
             <span
@@ -41,8 +39,6 @@ function Footer() {
             />
           </div>
         </button>
-
-        {/* Sidebar Links */}
         <nav className="mt-6 flex flex-col space-y-2">
           {navItems.map(({ to, label, icon }) => (
             <NavLink
@@ -73,8 +69,6 @@ function Footer() {
           ))}
         </nav>
       </div>
-
-      {/* Mobile Footer */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md text-white flex justify-around p-2 shadow-inner z-50">
         {navItems.map(({ to, icon }, i) => (
           <NavLink

@@ -79,7 +79,6 @@ export default function Sign_in_aur_up() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 z-0 transition-all duration-1000">
         <img
           src={carouselItems[currentIndex]}
@@ -88,8 +87,6 @@ export default function Sign_in_aur_up() {
         />
         <div className="absolute inset-0 bg-black bg-opacity-50" />
       </div>
-
-      {/* Form */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full">
         <motion.div
           initial={{ y: 50, opacity: 0 }}
@@ -180,8 +177,6 @@ export default function Sign_in_aur_up() {
           &larr; Back to Home
         </Link>
       </div>
-
-      {/* Popup Message */}
       <AnimatePresence>
         {popup.show && (
           <motion.div
