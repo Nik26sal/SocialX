@@ -30,7 +30,7 @@ function Profile() {
   const handleDelete = async (postId) => {
     try {
       const response = await axios.delete(
-        `http://localhost:5555/post/deletePost/${postId}`,
+        `https://social-x-cx5w.vercel.app/post/deletePost/${postId}`,
         { withCredentials: true }
       );
       setUserPosts((prevPosts) => prevPosts.filter((p) => p._id !== postId));

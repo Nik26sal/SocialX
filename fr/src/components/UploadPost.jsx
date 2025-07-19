@@ -28,7 +28,7 @@ function UploadPost() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5555/post/uploadPost',
+        'https://social-x-cx5w.vercel.app/post/uploadPost',
         formData,
         {
           headers: {

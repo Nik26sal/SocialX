@@ -47,7 +47,7 @@ export default function Sign_in_aur_up() {
     try {
       setLoading(true);
       if (isLogin) {
-        const response = await axios.post('http://localhost:5555/user/login', {
+        const response = await axios.post('https://social-x-cx5w.vercel.app/user/login', {
           Email: input.Email,
           Password: input.Password,
         }, { withCredentials: true });
@@ -62,7 +62,7 @@ export default function Sign_in_aur_up() {
         formData.append('Password', input.Password);
         if (input.avatar) formData.append('avatar', input.avatar);
 
-        await axios.post('http://localhost:5555/user/register', formData, {
+        await axios.post('https://social-x-cx5w.vercel.app/user/register', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           withCredentials: true,
         });

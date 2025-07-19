@@ -30,13 +30,13 @@ function ViewPost() {
     const fetchPosts = async () => {
       try {
         const allPostsResponse = await axios.get(
-          'http://localhost:5555/post/getAllPost',
+          'https://social-x-cx5w.vercel.app/post/getAllPost',
           { withCredentials: true }
         );
         dispatch(post({ post: allPostsResponse.data.post }));
 
         const likedPostsResponse = await axios.get(
-          'http://localhost:5555/like/returnpost',
+          'https://social-x-cx5w.vercel.app/like/returnpost',
           { withCredentials: true }
         );
         const likedPostIds = new Set(
@@ -64,7 +64,7 @@ function ViewPost() {
     const fetchComments = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5555/comment/returnAllComment/${posts[currentPostIndex]._id}`,
+          `https://social-x-cx5w.vercel.app/comment/returnAllComment/${posts[currentPostIndex]._id}`,
           { withCredentials: true }
         );
         setComments(response.data.comments);
@@ -92,8 +92,8 @@ function ViewPost() {
     const post = posts[currentPostIndex];
     const isLiked = post.Likes.includes(userId);
     const endpoint = isLiked
-      ? `http://localhost:5555/like/unlikepost/${post._id}`
-      : `http://localhost:5555/like/likesOnPost/${post._id}`;
+      ? `https://social-x-cx5w.vercel.app/like/unlikepost/${post._id}`
+      : `https://social-x-cx5w.vercel.app/like/likesOnPost/${post._id}`;
 
     try {
       await axios.patch(endpoint, {}, { withCredentials: true });
@@ -122,7 +122,7 @@ function ViewPost() {
     if (!newComment.trim()) return;
     try {
       const response = await axios.post(
-        `http://localhost:5555/comment/commentOnPost/${posts[currentPostIndex]._id}`,
+        `https://social-x-cx5w.vercel.app/comment/commentOnPost/${posts[currentPostIndex]._id}`,
         { content: newComment },
         { withCredentials: true }
       );

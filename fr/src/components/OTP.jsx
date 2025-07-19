@@ -44,7 +44,7 @@ function OTP() {
     setLoading(true);
     try {
       const code = otp.join("");
-      const response = await axios.post("http://localhost:5555/user/verifyEmail", {
+      const response = await axios.post("https://social-x-cx5w.vercel.app/user/verifyEmail", {
         code,
       });
 

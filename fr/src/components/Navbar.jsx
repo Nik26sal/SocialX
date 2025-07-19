@@ -18,7 +18,7 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.get('http://localhost:5555/user/logout', {
+      const response = await axios.get('https://social-x-cx5w.vercel.app/user/logout', {
         withCredentials: true,
       });
 
