@@ -76,35 +76,66 @@ const loginUser = async (req, res) => {
         }
 
         const user = await User.findOne({ Email });
-        if(!user){
-            return res.status(403).json({message:"User not found"})
+        if (!user) {
+            return res.status(403).json({ message: "User not found" });
         }
-        if ( !(await user.isPasswordCorrect(Password))) {
+
+        const isMatch = await user.isPasswordCorrect(Password);
+        if (!isMatch) {
             return res.status(400).json({ message: "Password is incorrect" });
         }
 
         const { accessToken, refreshToken } = await generateToken(user._id);
-        return res.status(200)
-            .cookie("accessToken", accessToken)
-            .cookie("refreshToken", refreshToken)
-            .json({ message: "User logged in successfully.", user ,accessToken,refreshToken});
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 1000 * 60 * 15, 
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+        });
+
+        return res.status(200).json({
+            message: "User logged in successfully.",
+            user,
+        });
+
     } catch (error) {
         console.error("Login Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
 
 const logoutUser = async (req, res) => {
     try {
-        return res.status(200)
-            .clearCookie("accessToken") 
-            .clearCookie("refreshToken") 
-            .json({ message: "Successfully logged out. Come back soon!" });
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None'
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None'
+        });
+
+        return res.status(200).json({
+            message: "Successfully logged out. Come back soon!"
+        });
+
     } catch (error) {
         console.error("Logout Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
+
 
 const deleteUser = async (req, res) => {
     try {
