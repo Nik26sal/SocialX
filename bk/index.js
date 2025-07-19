@@ -20,7 +20,7 @@ const app = express();
 
 
 const corsOptions = {
-    origin: process.env.CORS,
+    origin: 'https://social-x-phi.vercel.app',
     method:['GET','POST','PUT','PATCH','DELETE'],
     credentials: true,
 };
