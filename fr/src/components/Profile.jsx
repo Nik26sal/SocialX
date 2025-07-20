@@ -12,11 +12,8 @@ function Profile() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    console.log(posts)
-    if (user) {
-      if(posts.length >0){
+    if (user && posts.length > 0) {
       setUserPosts(posts.filter((p) => p.User._id === user._id));
-      }
     }
   }, [user, posts]);
 
@@ -27,6 +24,7 @@ function Profile() {
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + userPosts.length) % userPosts.length);
   };
+
   const handleDelete = async (postId) => {
     try {
       const response = await axios.delete(
@@ -34,14 +32,13 @@ function Profile() {
         { withCredentials: true }
       );
       setUserPosts((prevPosts) => prevPosts.filter((p) => p._id !== postId));
-  
       alert(response.data.message || "Post deleted successfully!");
     } catch (error) {
       console.error("Error deleting post:", error);
       alert("Failed to delete the post. Please try again.");
     }
   };
-  
+
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-full bg-gray-900 text-white">
@@ -73,34 +70,43 @@ function Profile() {
           Total Posts: {userPosts.length}
         </p>
       </div>
+
       <div className="border border-purple-500 text-center w-full p-6 mt-6 rounded-2xl bg-white shadow-md flex flex-col justify-center items-center">
         <h2 className="font-bold text-2xl mb-4 text-purple-500">Uploaded Posts</h2>
-        
+
         {userPosts.length > 0 ? (
           <div className="relative w-full max-w-lg overflow-hidden rounded-lg border border-gray-300 shadow-lg">
-            <div className="flex transition-transform ease-in-out duration-500" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+            <div
+              className="flex transition-transform ease-in-out duration-500"
+              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            >
               {userPosts.map((p, index) => (
-                <div key={index} className="min-w-full p-4 flex-shrink-0">
+                <div
+                  key={index}
+                  className="min-w-full p-4 flex-shrink-0 flex flex-col items-center min-h-[300px]"
+                >
                   {p.Type === 'image' && (
-                    <img 
-                      src={p.mediaURL} 
-                      alt="User Post" 
-                      className="rounded-xl shadow-lg w-full h-64 object-cover"
+                    <img
+                      src={p.mediaURL}
+                      alt="User Post"
+                      className="rounded-xl shadow-lg w-full max-h-[400px] object-contain"
                     />
                   )}
                   {p.Type === 'video' && (
-                    <video 
-                      controls 
-                      className="rounded-xl shadow-lg w-full h-64 object-cover"
+                    <video
+                      controls
+                      className="rounded-xl shadow-lg w-full max-h-[400px] object-contain"
                     >
                       <source src={p.mediaURL} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                   )}
                   {p.Type === 'text' && (
-                    <p className="text-lg text-gray-700 bg-gray-200 h-4/6 flex justify-center items-center p-4 rounded-lg">{p.Content}</p>
+                    <p className="text-lg text-gray-700 bg-gray-200 w-full h-64 flex justify-center items-center p-4 rounded-lg">
+                      {p.Content}
+                    </p>
                   )}
-                     <div className="mt-4 text-gray-500 text-sm">
+                  <div className="mt-4 text-gray-500 text-sm">
                     <p>📅 {new Date(p.createdAt).toLocaleString()}</p>
                     <p>❤️ {p.Likes.length} Likes</p>
                   </div>
@@ -114,15 +120,20 @@ function Profile() {
                 </div>
               ))}
             </div>
-            <button 
-              onClick={prevSlide} 
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 transition-transform hover:scale-110"
-            >‹</button>
-            
-            <button 
-              onClick={nextSlide} 
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 transition-transform hover:scale-110"
-            >›</button>
+
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 transition-transform hover:scale-110"
+            >
+              ‹
+            </button>
+
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 transition-transform hover:scale-110"
+            >
+              ›
+            </button>
           </div>
         ) : (
           <p className="text-gray-500">No posts available</p>

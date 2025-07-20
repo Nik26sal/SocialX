@@ -19,10 +19,29 @@ function ViewPost() {
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [loadingUser, setLoadingUser] = useState(true);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const userId = user?._id;
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await axios.get('https://social-x-cx5w.vercel.app/user/me', {
+          withCredentials: true,
+        });
+        dispatch({ type: 'auth/setUser', payload: response.data.user });
+      } catch (error) {
+        navigate('/sign_in_up');
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    if (!userId) checkSession();
+    else setLoadingUser(false);
+  }, [userId, dispatch, navigate]);
 
   useEffect(() => {
     if (!userId) return;
@@ -130,29 +149,13 @@ function ViewPost() {
       setComments([...comments, addedComment]);
       dispatch(addComment({ comment: addedComment }));
       setNewComment('');
-      window.location.reload();
     } catch (error) {
       console.error('Failed to add comment:', error);
     }
   };
 
-  if (!userId) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100 w-screen">
-        <h1 className="text-2xl font-bold mb-4">Profile</h1>
-        <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-          <h2 className="text-xl font-semibold">No User Registered Yet...</h2>
-          <button
-            onClick={handleNavigation}
-            className="text-blue-500 hover:underline mt-4"
-          >
-            Register or Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  if (loadingUser) return <div>Loading user...</div>;
+  if (!userId) return null;
   if (posts.length === 0) return <div>Loading posts...</div>;
 
   const currentPost = posts[currentPostIndex];
