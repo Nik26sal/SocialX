@@ -14,7 +14,8 @@ function Footer() {
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row h-auto">
+    <div className="relative min-h-screen flex">
+      {/* Sidebar for Desktop */}
       <div
         className={`${
           open ? "w-64" : "w-20"
@@ -69,6 +70,11 @@ function Footer() {
           ))}
         </nav>
       </div>
+
+      {/* Main content */}
+      <div className="flex-1">{/* Page content goes here */}</div>
+
+      {/* Mobile Footer (bottom nav) */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md text-white flex justify-around p-2 shadow-inner z-50">
         {navItems.map(({ to, icon }, i) => (
           <NavLink
