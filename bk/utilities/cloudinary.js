@@ -1,8 +1,7 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -11,6 +10,7 @@ cloudinary.config({
 });
 
 const uploadCloudinary = async (localFilePath) => {
+    console.log(api_secret)
     try {
         if (!localFilePath) return null;
 
