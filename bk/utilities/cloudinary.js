@@ -1,5 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config({
+    path: './.env'
+});
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
+// CLOUD_NAME = dhnzzqzap
+// CLOUD_API = 642518419392335
+// CLOUD_SECRET = mFSvO84Dwvvs3SX9g2d9JOBzloQ
 
 
 try {
