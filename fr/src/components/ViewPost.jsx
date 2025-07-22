@@ -149,6 +149,7 @@ function ViewPost() {
       setComments([...comments, addedComment]);
       dispatch(addComment({ comment: addedComment }));
       setNewComment('');
+      window.location.reload();
     } catch (error) {
       console.error('Failed to add comment:', error);
     }
